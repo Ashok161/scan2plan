@@ -1,0 +1,54 @@
+{
+  "capture": "c7d28f72c6",
+  "method": "Ceiling-height split-half repeatability (disclosed proxy).",
+  "rooms": [
+    {
+      "room": "R1",
+      "name": "Room 6",
+      "full": 2.2678,
+      "half1": null,
+      "half2": 2.2662,
+      "spread_mm": null
+    },
+    {
+      "room": "R2",
+      "name": "Room 4",
+      "full": 2.962,
+      "half1": null,
+      "half2": 2.9587,
+      "spread_mm": null
+    },
+    {
+      "room": "R3",
+      "name": "Room 3",
+      "full": 2.4119,
+      "half1": null,
+      "half2": 2.4167,
+      "spread_mm": null
+    },
+    {
+      "room": "R4",
+      "name": "Room 1",
+      "full": 2.4422,
+      "half1": null,
+      "half2": 2.4406,
+      "spread_mm": null
+    },
+    {
+      "room": "R5",
+      "name": "Room 2",
+      "full": 3.0791,
+      "half1": null,
+      "half2": 2.6316,
+      "spread_mm": null
+    },
+    {
+      "room": "R6",
+      "name": "Room 5",
+      "full": 2.3445,
+      "half1": 2.3843,
+      "half2": 2.3276,
+      "spread_mm": 56.8
+    }
+  ]
+}
