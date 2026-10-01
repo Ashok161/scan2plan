@@ -1,0 +1,30 @@
+[project]
+name = "scan2plan"
+version = "0.1.0"
+description = "Phone capture (photos / video / LiDAR) to dimensioned, stitched floor plans with damage scope"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "opencv-python-headless>=4.9",
+  "pillow>=10",
+  "matplotlib>=3.8",
+  "shapely>=2.0",
+  "jsonschema>=4.20",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+# monocular metric depth for the video and photo tiers
+mono = ["torch>=2.3", "transformers>=4.45", "accelerate", "huggingface_hub"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+scan2plan = "scan2plan.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["scan2plan*"]

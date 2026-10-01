@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# raw captures are large; fetched/unpacked by scripts/fetch_data.sh
+data/
+*.zip
+*.crdownload
+/1a8384c3f6/
+/c00a170fe1/
+/c7d28f72c6/
+out/
+.cache/
+.DS_Store
