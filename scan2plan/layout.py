@@ -20,7 +20,7 @@ from shapely.ops import unary_union
 from .frames import FrameSet
 from .fusion import Cloud, fuse, select_keyframes, voxel_downsample
 from .manhattan import dominant_yaw, floor_and_ceiling, horizontal_plane_peaks, refine_plane_height, yaw_rotation
-from .maps import Maps, build_maps, segment_rooms_by_walls
+from .maps import Maps, build_maps, refine_partition, segment_rooms_by_walls
 from .measure import Measurement, area_measurement, combine, length_measurement
 from .plan_types import Opening, Plan, Room, Wall
 from .walls import Gap, extract_wall_lines, find_gaps
@@ -358,6 +358,7 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
     lines = extract_wall_lines(cloud.points[sel][:, [0, 2]], cloud.normals[sel][:, [0, 2]])
     gaps = find_gaps(lines)
     labels, n_rooms, closures = segment_rooms_by_walls(maps, gaps, door_max=DOOR_MAX)
+    labels, n_rooms = refine_partition(labels, maps, door_max=DOOR_MAX)
     if single_room:
         lab_all, nl_all = ndi.label(maps.interior)
         if nl_all:

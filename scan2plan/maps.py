@@ -310,3 +310,76 @@ def segment_rooms_by_walls(maps: Maps, gaps, door_max: float = 1.3, min_area: fl
             n += 1
             out[m] = n
     return out, n, closures
+
+
+def _disk(radius_cells: int) -> np.ndarray:
+    r = radius_cells
+    y, x = np.ogrid[-r:r + 1, -r:r + 1]
+    return (x * x + y * y) <= r * r
+
+
+def refine_partition(labels: np.ndarray, maps: Maps, core_dist: float = 0.45, door_max: float = 1.3,
+                     min_room: float = 1.5, sliver: float = 0.5, min_area: float = 1.0) -> tuple[np.ndarray, int]:
+    """Fix-loop change (see docs/fix_declaration.md): partition rooms without relying on upper-band walls.
+
+    1. Neck splitting: inside each region, distance-transform cores (> core_dist from any obstacle) are
+       grown geodesically. Two cores stay separate rooms only if their shared boundary is door-like
+       (<= door_max) and both are >= min_room; otherwise they merge back.
+    2. Sliver removal: each room is opened with a disk of diameter `sliver`; thinner strips (leaks
+       through unclosed gaps) are dropped.
+    """
+    g = maps.grid
+    res = g.res
+    near = ndi.binary_dilation(maps.traj, iterations=int(round(0.3 / res)))
+    out = np.zeros_like(labels)
+    nxt = 0
+    for r in range(1, labels.max() + 1):
+        m = labels == r
+        if not m.any():
+            continue
+        dt = ndi.distance_transform_edt(m) * res
+        cores, nc = ndi.label(dt > core_dist)
+        if nc >= 2:
+            areas = ndi.sum(np.ones_like(cores), cores, index=np.arange(1, nc + 1)) * res * res
+            mk = np.zeros_like(cores)
+            k = 0
+            for c in np.flatnonzero(areas >= 0.3) + 1:
+                k += 1
+                mk[cores == c] = k
+            sub = geodesic_grow(mk, m) if k >= 2 else m.astype(np.int32)
+            changed = True
+            while changed and sub.max() > 1:
+                changed = False
+                bl = boundary_lengths(sub)
+                ids = [i for i in np.unique(sub) if i > 0]
+                area = {i: (sub == i).sum() * res * res for i in ids}
+                # wide connection -> same room
+                wide = [(c, p) for p, c in bl.items() if c * res > door_max]
+                if wide:
+                    _, (a, b) = max(wide)
+                    sub[sub == b] = a
+                    changed = True
+                    continue
+                # too small to be a room -> merge into the neighbour with the longest boundary
+                small = [i for i in ids if area[i] < min_room]
+                for i in small:
+                    nb = [(c, (q if p == i else p)) for (p, q), c in bl.items() if i in (p, q)]
+                    if nb:
+                        sub[sub == i] = max(nb)[1]
+                        changed = True
+                        break
+        else:
+            sub = m.astype(np.int32)
+        sub[~m] = 0
+        for i in [i for i in np.unique(sub) if i > 0]:
+            room = sub == i
+            opened = ndi.binary_opening(room, structure=_disk(max(1, int(round(sliver / 2 / res)))))
+            lab, nl = ndi.label(opened)
+            if nl > 1:
+                sizes = ndi.sum(np.ones_like(lab), lab, index=np.arange(1, nl + 1))
+                opened = lab == (1 + int(np.argmax(sizes)))
+            if opened.sum() * res * res < min_area or not (opened & near).any():
+                continue
+            nxt += 1
+            out[opened] = nxt
+    return out, nxt
