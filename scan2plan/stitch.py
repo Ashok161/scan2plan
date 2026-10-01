@@ -250,7 +250,9 @@ def _try_attach_component(comp: list[int], base_yaw: dict, base_t: dict,
                     continue
                 if float(np.dot(s_normal, c_normal_r)) > -0.6:
                     continue   # must face each other once rotated
-                target = s_open.center + s_normal * wall_thickness
+                # the candidate room sits on the far side of the placed room's
+                # wall from that wall's interior, i.e. *against* s_normal
+                target = s_open.center - s_normal * wall_thickness
                 extra_t = target - c_center_r
                 # build trial polygons for the whole component
                 polys = []
@@ -288,24 +290,31 @@ def _wall_index(room: Room, opening) -> int:
 
 def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | None = None,
                  wall_thickness: float = 0.15, width_tol: float = 0.35,
-                 room_gap: float = 1.0, seed: int = 0) -> Plan:
+                 room_gap: float = 1.0, seed: int = 0, progress=None) -> Plan:
     """Place `room_plans` into one whole-property Plan.
 
     `names[i]` is the room name used to match `links[*]["rooms"]` against
-    `room_plans[i]` (defaults to `room_plans[i].rooms[0].id`). Every input
-    Plan is kept rigid (its own rooms' relative arrangement is untouched);
-    only one global SE(2) placement is solved per Plan.
+    `room_plans[i]`. Defaults to `room_plans[i].rooms[0].name` -- this is the
+    integration point with `cli.run`: `layout.build_plan(..., single_room=True,
+    room_name=<photo folder name>)` sets `Room.name` to the folder name while
+    `Room.id` stays the generic "R1" for every single-room Plan, so `.id`
+    cannot be used to recover which photo folder a Plan came from, only
+    `.name` can. Every input Plan is kept rigid (its own rooms' relative
+    arrangement is untouched); only one global SE(2) placement is solved per
+    Plan.
     """
+    log = progress or (lambda *_: None)
     n = len(room_plans)
     if n == 0:
         raise ValueError("stitch_rooms: no room plans given")
     if names is None:
-        names = [p.rooms[0].id if p.rooms else f"plan{i}" for i, p in enumerate(room_plans)]
+        names = [p.rooms[0].name if p.rooms else f"plan{i}" for i, p in enumerate(room_plans)]
     if len(names) != n:
         raise ValueError("stitch_rooms: len(names) must match len(room_plans)")
 
     warnings: list[str] = []
     edges = _link_edges(room_plans, links, names)
+    log(f"stitch: {n} room plan(s), {len(edges)} usable link edge(s) out of {len(links)} link(s)")
     tree, comps = _max_spanning_forest(n, edges)
     comps = [sorted(c) for c in comps]
 
@@ -343,7 +352,7 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
                 for o in _door_openings(room):
                     center = _rot2(gyaw) @ o.center + gt
                     normal = _rot2(gyaw) @ room.walls[_wall_index(room, o)].normal_in
-                    openings.append((Polygon(xz), o, normal, room.id))
+                    openings.append((Polygon(xz), o, normal, f"p{gi}.{room.id}"))
         union = unary_union(polys) if polys else None
         return union, openings
 
@@ -368,6 +377,8 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
             placed_sigma[gi] = float(np.hypot(sigma_within[gi], 0.5 * width_tol))
         attach_log.append({"component": comp, "via_rooms": [s_room_id, c_room_id],
                            "score": score, "evidence": "door_matching"})
+        log(f"stitch: door-matched {[room_plans[gi].rooms[0].name for gi in comp if room_plans[gi].rooms]} "
+            f"onto {s_room_id} via {c_room_id} (width diff {score:.3f} m)")
         pending.remove(comp)
         progressed = True
 
@@ -380,9 +391,10 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
                 placed_global_yaw[gi] = base_yaw[gi]
                 placed_global_t[gi] = base_t[gi] + np.array([cursor, 0.0])
                 placed_sigma[gi] = 0.75   # arbitrary placement: large, explicit uncertainty
-            warnings.append(f"room(s) {[room_plans[gi].rooms[0].id for gi in comp if room_plans[gi].rooms]} "
-                            f"had no link and no matching door opening to the rest of the property; "
-                            f"placed at an arbitrary offset with no claimed adjacency")
+            names_here = [room_plans[gi].rooms[0].name for gi in comp if room_plans[gi].rooms]
+            warnings.append(f"room(s) {names_here} had no link and no matching door opening to the "
+                            f"rest of the property; placed at an arbitrary offset with no claimed adjacency")
+            log(f"stitch: WARNING room(s) {names_here} placed arbitrarily (no link, no door match)")
             u, _ = placed_union_and_openings()
             cursor = u.bounds[2] + room_gap if u is not None else cursor + room_gap
 
@@ -416,20 +428,20 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
         if key in seen_adj:
             continue
         seen_adj.add(key)
-        via = None
+        via = []
         ra_room = next((r for r in merged_rooms if r.id == ra), None)
         if ra_room and _door_openings(ra_room):
-            via = _door_openings(ra_room)[0].id
+            via = [_door_openings(ra_room)[0].id]
         adjacency.append({"rooms": [ra, rb], "via": via,
                           "kind": "door" if via else "passage", "evidence": e["evidence"]})
-    for log in attach_log:
-        s_room, c_room = log["via_rooms"]
+    for att in attach_log:
+        s_room, c_room = att["via_rooms"]
         key = tuple(sorted((s_room, c_room)))
         if key in seen_adj:
             continue
         seen_adj.add(key)
         c_room_obj = next((r for r in merged_rooms if r.id == c_room), None)
-        via = _door_openings(c_room_obj)[0].id if c_room_obj and _door_openings(c_room_obj) else None
+        via = [_door_openings(c_room_obj)[0].id] if c_room_obj and _door_openings(c_room_obj) else []
         adjacency.append({"rooms": [s_room, c_room], "via": via,
                           "kind": "door" if via else "passage", "evidence": "door_matching"})
 
@@ -445,6 +457,7 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
 
     floor_y = float(np.mean([r.floor_y for r in merged_rooms])) if merged_rooms else 0.0
     drift = {
+        "enabled": True,
         "method": "link_pose_graph+door_matching_fallback",
         "placement_sigma_m": {id_map.get((gi, room_plans[gi].rooms[0].id), f"plan{gi}"): placed_sigma.get(gi, 0.0)
                               for gi in range(n) if room_plans[gi].rooms},

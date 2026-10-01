@@ -89,9 +89,13 @@ def build_fixture_plan(fs: FrameSet, voxel: float = 0.03, max_frames: int = 400)
     for k, ln in enumerate(lines):
         if not ln.segments:
             continue
-        a = min(s[0] for s in ln.segments)
-        b = max(s[1] for s in ln.segments)
-        covered = sum(e - s for s, e in ln.segments)
+        # the single longest contiguous segment, not the min/max across all
+        # segments: merging across a real gap (doorway, corner into another
+        # room) would silently stitch two different physical walls into one
+        # "flat" rectangle, which breaks the planarity assumption everything
+        # downstream (damage projection, synthetic compositing) relies on.
+        a, b = max(ln.segments, key=lambda s: s[1] - s[0])
+        covered = b - a
         if ln.axis == 0:
             start, end = np.array([ln.c, a]), np.array([ln.c, b])
             normal_in = np.array([float(ln.sign), 0.0])
@@ -239,10 +243,10 @@ def render_hole(width_m: float, height_m: float, seed: int) -> np.ndarray:
 
 
 RENDERERS = {
-    "water_stain": lambda w, h, s: render_water_stain(w, h, s),
-    "mould": lambda w, h, s: render_mould(w, h, s),
-    "crack": lambda w, h, s: render_crack(max(w, h), min(w, h), s),
-    "hole_or_impact": lambda w, h, s: render_hole(w, h, s),
+    "water_stain": lambda w, h, seed: render_water_stain(w, h, seed),
+    "mould": lambda w, h, seed: render_mould(w, h, seed),
+    "crack": lambda w, h, seed: render_crack(max(w, h), min(w, h), seed),
+    "hole_or_impact": lambda w, h, seed: render_hole(w, h, seed),
 }
 
 

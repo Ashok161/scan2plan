@@ -320,7 +320,7 @@ def _coverage(along: np.ndarray, lo: float, hi: float, bin_size: float = 0.05) -
 
 def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
                progress=None, cloud: Cloud | None = None, single_room: bool = False,
-               room_name: str | None = None) -> Plan:
+               room_name: str | None = None, low_walls: bool = True, neck_split: bool = True) -> Plan:
     """single_room: the capture is one room (photo tier folder); skip door segmentation."""
     t0 = time.time()
     log = progress or (lambda *_: None)
@@ -348,8 +348,10 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
 
     maps = build_maps(cloud, floor_y, ceil_y, res=res)
     g = maps.grid
-    # wall lines from points on wall-like (barrier) cells
     h = cloud.points[:, 1] - floor_y
+    if low_walls:
+        _add_low_wall_lines(maps, cloud, h)
+    # wall lines from points on wall-like (barrier) cells
     ij = g.ij(cloud.points[:, [0, 2]])
     ok = g.inside(ij)
     on_bar = np.zeros(len(h), bool)
@@ -358,7 +360,8 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
     lines = extract_wall_lines(cloud.points[sel][:, [0, 2]], cloud.normals[sel][:, [0, 2]])
     gaps = find_gaps(lines)
     labels, n_rooms, closures = segment_rooms_by_walls(maps, gaps, door_max=DOOR_MAX)
-    labels, n_rooms = refine_partition(labels, maps, door_max=DOOR_MAX)
+    if neck_split:
+        labels, n_rooms = refine_partition(labels, maps, door_max=DOOR_MAX)
     if single_room:
         lab_all, nl_all = ndi.label(maps.interior)
         if nl_all:
@@ -405,6 +408,34 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
     plan.debug = {"maps": maps, "labels": labels, "lines": lines, "gaps": gaps, "closures": closures,
                   "cloud": cloud, "manhattan_score": mscore, "floor_sigma": floor_sd}
     return plan
+
+
+def _add_low_wall_lines(maps: Maps, cloud: Cloud, h: np.ndarray, min_len: float = 1.2):
+    """Fix loop (attempt 2): long straight walls seen only low down are still walls.
+
+    A capture that rarely looks above ~1 m (phone pointed at the floor) never
+    sees walls in the >1.25 m band, so they fail the tall-structure test and
+    rooms merge. Straight vertical planes >= min_len long observed in the
+    0.1-1.0 m band are rasterised into the barrier map. Furniture faces this
+    long (counters, sofa backs) mostly bound areas that are already not
+    interior (no floor seen under / behind them), so they rarely change the
+    partition.
+    """
+    from .maps import _interior, rasterize_segment
+    g = maps.grid
+    sel = (np.abs(cloud.normals[:, 1]) < 0.3) & (h > 0.1) & (h < 1.0)
+    low = extract_wall_lines(cloud.points[sel][:, [0, 2]], cloud.normals[sel][:, [0, 2]],
+                             min_seg=min_len, close_gap=0.08, min_occ=3)
+    extra = np.zeros(maps.barrier.shape, bool)
+    for ln in low:
+        for a, b in ln.segments:
+            if b - a < min_len:
+                continue
+            p0 = np.array([ln.c, a]) if ln.axis == 0 else np.array([a, ln.c])
+            p1 = np.array([ln.c, b]) if ln.axis == 0 else np.array([b, ln.c])
+            rasterize_segment(extra, g, p0, p1, half_width=0)
+    maps.barrier = maps.barrier | extra
+    maps.interior = _interior(g, maps.barrier, maps.floor_obs, maps.free)
 
 
 def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob, ceil_y_glob, errs, maps,

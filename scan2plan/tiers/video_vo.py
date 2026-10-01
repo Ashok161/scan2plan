@@ -59,7 +59,8 @@ def match_descriptors(des_a, des_b, max_ratio: float = 0.8):
 
 def relative_pose_pnp(pts_a_px: np.ndarray, pts_b_px: np.ndarray, depth_a: np.ndarray,
                        K: np.ndarray, depth_range=(0.2, 8.0), min_inliers: int = 15,
-                       depth_scale: tuple[float, float] = (1.0, 1.0)):
+                       depth_scale: tuple[float, float] = (1.0, 1.0),
+                       max_translation_m: float = 3.0, min_inlier_frac: float = 0.2):
     """Metric relative pose a->b from matches, using frame a's depth as the object points.
 
     ``K`` and ``pts_*_px`` are in full-resolution pixel coordinates; depth_a
@@ -91,10 +92,14 @@ def relative_pose_pnp(pts_a_px: np.ndarray, pts_b_px: np.ndarray, depth_a: np.nd
         flags=cv2.SOLVEPNP_EPNP)
     if not ok or inliers is None or len(inliers) < min_inliers:
         return None
+    if len(inliers) < min_inlier_frac * len(obj):
+        return None  # too few inliers relative to candidates: likely a degenerate/overfit solution
     inliers = inliers.ravel()
     ok, rvec, tvec = cv2.solvePnP(obj[inliers], img[inliers], K.astype(np.float64), None,
                                    rvec, tvec, useExtrinsicGuess=True,
                                    flags=cv2.SOLVEPNP_ITERATIVE)
+    if not ok or not np.all(np.isfinite(tvec)) or np.linalg.norm(tvec) > max_translation_m:
+        return None  # implausible jump between nearby keyframes: reject rather than corrupt the chain
     R, _ = cv2.Rodrigues(rvec)
     return {"R": R, "t": tvec.ravel(), "n_inliers": int(len(inliers)),
             "obj": obj[inliers], "img_b": img[inliers]}
