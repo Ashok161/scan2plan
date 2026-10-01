@@ -1,0 +1,81 @@
+# Concealed-damage rule table for scan2plan/concealed.py.
+#
+# Each rule is evaluated per visible damage region (scope: region) or per
+# pair of regions in the same room (scope: pair). `condition` is a Python
+# boolean expression evaluated against a restricted context (see
+# concealed.py:_build_context / _build_pair_context) -- no builtins, no
+# attribute access beyond the documented keys, so a malformed rules file
+# fails safely with a NameError rather than running arbitrary code.
+#
+# Thresholds are the kind of number a residential inspector would use as a
+# first pass, not a code citation; they are called out as assumptions in the
+# technical report (base-of-wall band, exterior-wall heuristic, wet-room
+# keyword list) because the upstream Plan does not yet carry an authoritative
+# exterior/wet-room flag.
+
+- id: ceiling_water_stain
+  scope: region
+  description: Water stain on a ceiling
+  condition: "cls == 'water_stain' and surface_kind == 'ceiling'"
+  flag: "Ceiling water stain: possible leak from the floor/roof above."
+  severity: high
+  recommended_investigation: >
+    Inspect the space above (roof, attic, or the floor above) for an active
+    or historical plumbing/roof leak; moisture-meter the ceiling around the
+    stain before any cosmetic repair.
+
+- id: wall_base_moisture
+  scope: region
+  description: Stain or mould at the base of a wall
+  condition: "cls in ('water_stain', 'mould') and surface_kind == 'wall' and height_above_floor_m < 0.3"
+  flag: "Stain/mould within 0.3 m of the floor: possible wicking or subfloor moisture."
+  severity: medium
+  recommended_investigation: >
+    Moisture-map the base of the wall and the adjacent floor assembly;
+    check for a failed damp-proof course, slab moisture ingress or a hidden
+    plumbing leak beneath the floor.
+
+- id: near_wet_room_moisture
+  scope: region
+  description: Stain or mould on a wall near a wet room
+  condition: "cls in ('water_stain', 'mould') and surface_kind == 'wall' and near_wet_room"
+  flag: "Stain/mould on a wall adjoining or near a wet room: possible plumbing migration."
+  severity: medium
+  recommended_investigation: >
+    Pressure-test or dye-test the wet room's plumbing on the shared wall;
+    check behind fixtures for a slow leak before repainting over it.
+
+- id: exterior_wall_mould
+  scope: region
+  description: Mould on an exterior-facing wall
+  condition: "cls == 'mould' and surface_kind == 'wall' and is_exterior_wall"
+  flag: "Mould on an exterior-facing wall: possible condensation or insulation failure."
+  severity: medium
+  recommended_investigation: >
+    Check insulation continuity and thermal bridging at this wall and
+    monitor indoor relative humidity; condensation mould recurs if the
+    underlying thermal/ventilation issue is not fixed.
+
+- id: structural_crack
+  scope: region
+  description: Crack that is large or opening-adjacent
+  condition: "cls == 'crack' and (diagonal_from_opening_corner or length_m > 0.5)"
+  flag: "Crack diagonal from an opening corner or longer than 0.5 m: possible structural movement."
+  severity: high
+  recommended_investigation: >
+    Have a structural engineer assess the crack (width over time, step in
+    the wall, correlation with foundation/lintel movement) before any
+    cosmetic fill.
+
+- id: ceiling_wall_junction_stain
+  scope: pair
+  description: Water stains on both the ceiling and an adjoining wall, close together
+  condition: >
+    a.cls == 'water_stain' and b.cls == 'water_stain'
+    and {a.surface_kind, b.surface_kind} == {'ceiling', 'wall'}
+    and a.room_id == b.room_id and centroid_dist_m < 0.75
+  flag: "Water staining spans the ceiling-wall junction: possible roof or plumbing leak at the junction."
+  severity: high
+  recommended_investigation: >
+    Inspect the roof/plumbing penetrations and the ceiling-wall junction
+    flashing or sealant directly above this location.

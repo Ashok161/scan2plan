@@ -1,0 +1,76 @@
+# Scope line-item rules for scan2plan/scope.py.
+#
+# Each rule matches either a damage class ("applies_to: damage", "classes: [...]")
+# or any concealed flag ("applies_to: concealed"), and says how to turn the
+# match(es) on one surface into a quantified line item. `quantity_basis`:
+#   - surface_area       : the whole matched surface's area (Wall L*H, or
+#                           Room.area for floor/ceiling) -- used when the
+#                           repair logically redoes the whole surface
+#                           (repaint, mould remediation substrate prep).
+#   - damage_area_margin : sum of matched damage regions' area * margin
+#   - damage_length       : max(width, height) of the matched region (crack fill, linear)
+#   - count               : one line per matched region/flag (holes, invasive inspection)
+#
+# `margin` inflates a quantity to a realistic trade allowance (e.g. a
+# painter does not cut in exactly to the stain edge). Uncertainty on every
+# quantity is propagated from the Measurement(s) it is built from (see
+# scope.py:_propagate_*).
+
+- id: stain_mould_repaint
+  code: "09.91-REPAINT-SURF"
+  applies_to: damage
+  classes: [water_stain, mould]
+  surface_kinds: [wall, ceiling]
+  description: "Stain-block primer + repaint, full surface (stain/mould bleed-through risk)"
+  quantity_basis: surface_area
+  unit: m2
+  basis: "Whole surface area; stain-blocking primer is applied edge-to-edge, not just over the visible stain."
+
+- id: mould_remediation
+  code: "01.74-MOLD-REMED"
+  applies_to: damage
+  classes: [mould]
+  surface_kinds: [wall, ceiling]
+  description: "Mould remediation (clean/treat) with containment margin"
+  quantity_basis: damage_area_margin
+  margin: 1.3
+  unit: m2
+  basis: "Detected mould area x 1.3 containment margin, per IICRC S520-style practice of treating beyond the visible boundary."
+
+- id: crack_fill
+  code: "09.21-CRACK-FILL"
+  applies_to: damage
+  classes: [crack]
+  surface_kinds: [wall, ceiling]
+  description: "Crack fill and feather, linear"
+  quantity_basis: damage_length
+  unit: m
+  basis: "Longer in-plane extent of the detected crack region."
+
+- id: hole_patch
+  code: "09.21-PATCH"
+  applies_to: damage
+  classes: [hole_or_impact]
+  surface_kinds: [wall]
+  description: "Drywall patch at impact/hole damage"
+  quantity_basis: count
+  unit: ea
+  basis: "One patch per detected hole/impact region."
+
+- id: peeling_paint_prep_repaint
+  code: "09.91-PREP-REPAINT"
+  applies_to: damage
+  classes: [peeling_paint]
+  surface_kinds: [wall, ceiling]
+  description: "Scrape/sand loose paint, prime and repaint, full surface"
+  quantity_basis: surface_area
+  unit: m2
+  basis: "Whole surface area; feathering a peeling-paint repair to a clean edge usually requires the full surface."
+
+- id: concealed_investigation
+  code: "01.32-INVASIVE-INSPECT"
+  applies_to: concealed
+  description: "Moisture mapping / invasive inspection at a concealed-damage flag"
+  quantity_basis: count
+  unit: ea
+  basis: "One inspection allowance per concealed-damage flag raised by the rule engine."

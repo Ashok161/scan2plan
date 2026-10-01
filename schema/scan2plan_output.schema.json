@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/scan2plan/output/1.0.0",
+  "title": "scan2plan capture output",
+  "description": "One JSON document per capture. Every metric number is a Measurement with a 95% interval. Plan frame: +Y up, dominant walls along X and Z, plan coordinates (x, z) in metres.",
+  "type": "object",
+  "required": ["schema_version", "pipeline_version", "capture", "tier", "units", "frame", "rooms", "adjacency",
+               "stitched", "drift", "damage", "concealed_damage_flags", "scope", "warnings"],
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "required": ["value", "ci95", "sigma", "unit"],
+      "properties": {
+        "value": {"type": "number"},
+        "ci95": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "sigma": {"type": "number", "minimum": 0},
+        "unit": {"type": "string", "enum": ["m", "m2", "count", "deg"]},
+        "method": {"type": "string"},
+        "budget": {"type": "object", "additionalProperties": {"type": "number"}}
+      }
+    },
+    "measurement_or_null": {"oneOf": [{"$ref": "#/$defs/measurement"}, {"type": "null"}]},
+    "xz": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+    "xyz": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "wall": {
+      "type": "object",
+      "required": ["id", "start", "end", "normal_in", "length", "height", "area", "coverage", "observed", "openings"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+\\.W[0-9]+$"},
+        "start": {"$ref": "#/$defs/xz"},
+        "end": {"$ref": "#/$defs/xz"},
+        "normal_in": {"$ref": "#/$defs/xz"},
+        "length": {"$ref": "#/$defs/measurement"},
+        "height": {"$ref": "#/$defs/measurement"},
+        "area": {"$ref": "#/$defs/measurement"},
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "observed": {"type": "boolean"},
+        "openings": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "opening": {
+      "type": "object",
+      "required": ["id", "kind", "wall_id", "center", "width", "connects"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string", "enum": ["door", "passage", "window"]},
+        "wall_id": {"type": "string"},
+        "center": {"$ref": "#/$defs/xz"},
+        "width": {"$ref": "#/$defs/measurement"},
+        "height": {"$ref": "#/$defs/measurement_or_null"},
+        "sill_height": {"$ref": "#/$defs/measurement_or_null"},
+        "connects": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "string"}
+      }
+    },
+    "room": {
+      "type": "object",
+      "required": ["id", "name", "kind", "polygon", "floor_area", "perimeter", "ceiling_height", "ceiling_observed",
+                   "walls", "openings", "surfaces"],
+      "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "kind": {"type": "string", "enum": ["room", "connector"]},
+        "polygon": {"type": "array", "items": {"$ref": "#/$defs/xz"}, "minItems": 3},
+        "floor_area": {"$ref": "#/$defs/measurement"},
+        "perimeter": {"$ref": "#/$defs/measurement"},
+        "ceiling_height": {"$ref": "#/$defs/measurement"},
+        "ceiling_observed": {"type": "boolean"},
+        "floor_elevation": {"type": "number"},
+        "walls": {"type": "array", "items": {"$ref": "#/$defs/wall"}},
+        "openings": {"type": "array", "items": {"$ref": "#/$defs/opening"}},
+        "surfaces": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "damage": {
+      "type": "object",
+      "required": ["id", "surface_id", "class", "confidence", "area"],
+      "properties": {
+        "id": {"type": "string"},
+        "surface_id": {"type": "string"},
+        "room_id": {"type": "string"},
+        "class": {"type": "string"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "area": {"$ref": "#/$defs/measurement"},
+        "extent": {"type": "object", "properties": {"width": {"$ref": "#/$defs/measurement"},
+                                                    "height": {"$ref": "#/$defs/measurement"}}},
+        "centroid_plan": {"$ref": "#/$defs/xyz"}
+      }
+    },
+    "flag": {
+      "type": "object",
+      "required": ["id", "surface_id", "rule_id", "rule", "triggered_by"],
+      "properties": {
+        "id": {"type": "string"},
+        "surface_id": {"type": "string"},
+        "rule_id": {"type": "string"},
+        "rule": {"type": "string"},
+        "severity": {"type": "string"},
+        "triggered_by": {"type": "array", "items": {"type": "string"}},
+        "recommendation": {"type": "string"}
+      }
+    },
+    "scope_item": {
+      "type": "object",
+      "required": ["id", "surface_id", "description", "quantity", "unit"],
+      "properties": {
+        "id": {"type": "string"},
+        "surface_id": {"type": "string"},
+        "room_id": {"type": "string"},
+        "code": {"type": "string"},
+        "description": {"type": "string"},
+        "quantity": {"$ref": "#/$defs/measurement"},
+        "unit": {"type": "string"},
+        "basis": {"type": "string"},
+        "triggered_by": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {"type": "string"},
+    "pipeline_version": {"type": "string"},
+    "capture": {"type": "object", "required": ["id", "tier", "source"],
+                "properties": {"id": {"type": "string"}, "tier": {"type": "string", "enum": ["lidar", "video", "photo"]},
+                               "source": {"type": "string"}}},
+    "tier": {"type": "string", "enum": ["lidar", "video", "photo"]},
+    "units": {"type": "object"},
+    "frame": {"type": "object", "required": ["T_align"]},
+    "rooms": {"type": "array", "items": {"$ref": "#/$defs/room"}},
+    "adjacency": {"type": "array", "items": {"type": "object", "required": ["rooms"],
+                  "properties": {"rooms": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+                                 "via": {}, "kind": {"type": "string"}}}},
+    "stitched": {"type": "object", "required": ["n_rooms", "footprint_area"],
+                 "properties": {"n_rooms": {"type": "integer"}, "footprint_area": {"$ref": "#/$defs/measurement_or_null"}}},
+    "drift": {"type": "object", "required": ["enabled", "method"]},
+    "damage": {"type": "array", "items": {"$ref": "#/$defs/damage"}},
+    "concealed_damage_flags": {"type": "array", "items": {"$ref": "#/$defs/flag"}},
+    "scope": {"type": "array", "items": {"$ref": "#/$defs/scope_item"}},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "timings_s": {"type": "object"}
+  }
+}
