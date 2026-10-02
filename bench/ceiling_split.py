@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 from scan2plan.io.stray import load_stray
-from scan2plan.layout import _points_in, build_plan
+from scan2plan.layout import _points_in, build_plan, ceiling_level
 from scan2plan.manhattan import horizontal_plane_peaks, refine_plane_height
 from shapely.geometry import Polygon
 
@@ -33,11 +33,10 @@ def _height(cloud, mask, poly):
     ce = ce[ce[:, 1] > f + 1.8]
     if len(ce) < 200:
         return None
-    pk = horizontal_plane_peaks(ce[:, 1], min_frac=0.02)
-    if not pk:
+    lvl = ceiling_level(ce)            # same rule as the pipeline: level covering the largest area
+    if lvl is None:
         return None
-    c, _, _ = refine_plane_height(ce[:, 1], max(pk, key=lambda t: t[1])[0], 0.03)
-    return c - f
+    return lvl[0] - f
 
 
 def run(capture: str = CAPTURE):

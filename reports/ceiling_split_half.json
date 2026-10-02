@@ -4,50 +4,34 @@
   "rooms": [
     {
       "room": "R1",
-      "name": "Room 3",
-      "full": 2.9621,
+      "name": "Room 4",
+      "full": 3.1149,
       "half1": null,
-      "half2": 2.9587,
+      "half2": 3.1238,
       "spread_mm": null
     },
     {
       "room": "R2",
-      "name": "Room 4",
-      "full": 2.2657,
-      "half1": null,
-      "half2": 2.2692,
-      "spread_mm": null
+      "name": "Room 1",
+      "full": 2.3996,
+      "half1": 2.3805,
+      "half2": 2.3988,
+      "spread_mm": 18.4
     },
     {
       "room": "R3",
-      "name": "Room 5",
-      "full": 2.9657,
+      "name": "Room 2",
+      "full": 2.5032,
       "half1": null,
-      "half2": null,
+      "half2": 2.5048,
       "spread_mm": null
     },
     {
       "room": "R4",
-      "name": "Room 1",
-      "full": 2.4413,
+      "name": "Room 3",
+      "full": 3.1039,
       "half1": null,
-      "half2": 2.4385,
-      "spread_mm": null
-    },
-    {
-      "room": "R5",
-      "name": "Hallway 1",
-      "full": 2.4124,
-      "half1": null,
-      "half2": 2.4164,
-      "spread_mm": null
-    },
-    {
-      "room": "R6",
-      "name": "Room 2",
-      "full": 3.078,
-      "half1": null,
-      "half2": 2.6303,
+      "half2": 2.645,
       "spread_mm": null
     }
   ]

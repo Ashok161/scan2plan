@@ -1,0 +1,4067 @@
+{
+  "schema_version": "1.0.0",
+  "pipeline_version": "0.1.0",
+  "capture": {
+    "id": "1a8384c3f6",
+    "tier": "lidar",
+    "source": "/Users/ashok.ramavath/Assignment/data/1a8384c3f6",
+    "input_sha1": "bcfea637dbb6dce8e7056c6145274aec8a855433",
+    "meta": {
+      "device_format": "StrayScanner",
+      "n_frames": 5251,
+      "video": "/Users/ashok.ramavath/Assignment/data/1a8384c3f6/rgb.mp4"
+    }
+  },
+  "tier": "lidar",
+  "units": {
+    "length": "m",
+    "area": "m2",
+    "ci": "95% two-sided, value +- 1.96 sigma"
+  },
+  "frame": {
+    "description": "plan frame: +Y up (gravity), dominant walls along X and Z; plan coordinates are (x, z); drawn top-down as (x, -z)",
+    "T_align": [
+      [
+        0.997838,
+        0.0,
+        -0.06572,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.06572,
+        0.0,
+        0.997838,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "rooms": [
+    {
+      "id": "R1",
+      "name": "Room 3",
+      "kind": "room",
+      "polygon": [
+        [
+          -6.4581,
+          -1.3528
+        ],
+        [
+          -5.0256,
+          -1.3528
+        ],
+        [
+          -5.0256,
+          -1.2119
+        ],
+        [
+          -3.8174,
+          -1.2119
+        ],
+        [
+          -3.8174,
+          2.6795
+        ],
+        [
+          -4.9932,
+          2.6795
+        ],
+        [
+          -4.9932,
+          1.8361
+        ],
+        [
+          -6.795,
+          1.8361
+        ],
+        [
+          -6.795,
+          -1.2431
+        ],
+        [
+          -6.4581,
+          -1.2431
+        ]
+      ],
+      "floor_area": {
+        "value": 10.2798,
+        "ci95": [
+          8.2865,
+          12.2731
+        ],
+        "sigma": 1.01702,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 1.01619,
+          "scale": 0.04112
+        }
+      },
+      "perimeter": {
+        "value": 14.0199,
+        "ci95": [
+          13.0389,
+          15.0009
+        ],
+        "sigma": 0.50053,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.9401,
+          3.0599
+        ],
+        "sigma": 0.28568,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.28568
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": 0.0085,
+      "walls": [
+        {
+          "id": "R1.W1",
+          "start": [
+            -6.4581,
+            -1.3528
+          ],
+          "end": [
+            -5.0256,
+            -1.3528
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.4325,
+            "ci95": [
+              0.9424,
+              1.9227
+            ],
+            "sigma": 0.25009,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.00418,
+              "scale": 0.00287
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 3.5813,
+            "ci95": [
+              2.1167,
+              5.0459
+            ],
+            "sigma": 0.74725,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.692,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R1.W2",
+          "start": [
+            -5.0256,
+            -1.3528
+          ],
+          "end": [
+            -5.0256,
+            -1.2119
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.1409,
+            "ci95": [
+              -0.3494,
+              0.6311
+            ],
+            "sigma": 0.25014,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25011,
+              "plane_b": 0.00401,
+              "scale": 0.00028
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 0.3522,
+            "ci95": [
+              -0.876,
+              1.5804
+            ],
+            "sigma": 0.62665,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W3",
+          "start": [
+            -5.0256,
+            -1.2119
+          ],
+          "end": [
+            -3.8174,
+            -1.2119
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.2082,
+            "ci95": [
+              1.1959,
+              1.2206
+            ],
+            "sigma": 0.00631,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00418,
+              "plane_b": 0.00407,
+              "scale": 0.00242
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 3.0206,
+            "ci95": [
+              2.3434,
+              3.6979
+            ],
+            "sigma": 0.34554,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W4",
+          "start": [
+            -3.8174,
+            -1.2119
+          ],
+          "end": [
+            -3.8174,
+            2.6795
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.8915,
+            "ci95": [
+              3.4001,
+              4.3828
+            ],
+            "sigma": 0.25071,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00401,
+              "plane_b": 0.25056,
+              "scale": 0.00778
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 9.7287,
+            "ci95": [
+              7.2273,
+              12.23
+            ],
+            "sigma": 1.27624,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.973,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W5",
+          "start": [
+            -3.8174,
+            2.6795
+          ],
+          "end": [
+            -4.9932,
+            2.6795
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.1758,
+            "ci95": [
+              1.1637,
+              1.1879
+            ],
+            "sigma": 0.00619,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00407,
+              "plane_b": 0.00402,
+              "scale": 0.00235
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 2.9396,
+            "ci95": [
+              2.2805,
+              3.5986
+            ],
+            "sigma": 0.33627,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.19,
+          "observed": false,
+          "openings": [
+            "R1.O1"
+          ]
+        },
+        {
+          "id": "R1.W6",
+          "start": [
+            -4.9932,
+            2.6795
+          ],
+          "end": [
+            -4.9932,
+            1.8361
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.8435,
+            "ci95": [
+              0.3523,
+              1.3346
+            ],
+            "sigma": 0.2506,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25056,
+              "plane_b": 0.004,
+              "scale": 0.00169
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 2.1087,
+            "ci95": [
+              0.7931,
+              3.4243
+            ],
+            "sigma": 0.67124,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W7",
+          "start": [
+            -4.9932,
+            1.8361
+          ],
+          "end": [
+            -6.795,
+            1.8361
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.8018,
+            "ci95": [
+              1.7886,
+              1.815
+            ],
+            "sigma": 0.00674,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.00403,
+              "scale": 0.0036
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 4.5045,
+            "ci95": [
+              3.4951,
+              5.5139
+            ],
+            "sigma": 0.51502,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W8",
+          "start": [
+            -6.795,
+            1.8361
+          ],
+          "end": [
+            -6.795,
+            -1.2431
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.0791,
+            "ci95": [
+              2.5889,
+              3.5694
+            ],
+            "sigma": 0.25014,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.004,
+              "plane_b": 0.25003,
+              "scale": 0.00616
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 7.6978,
+            "ci95": [
+              5.5824,
+              9.8131
+            ],
+            "sigma": 1.07928,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W9",
+          "start": [
+            -6.795,
+            -1.2431
+          ],
+          "end": [
+            -6.4581,
+            -1.2431
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 0.3368,
+            "ci95": [
+              -0.1533,
+              0.827
+            ],
+            "sigma": 0.25007,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.25004,
+              "scale": 0.00067
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 0.8421,
+            "ci95": [
+              -0.3977,
+              2.0818
+            ],
+            "sigma": 0.63254,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R1.W10",
+          "start": [
+            -6.4581,
+            -1.2431
+          ],
+          "end": [
+            -6.4581,
+            -1.3528
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.1097,
+            "ci95": [
+              -0.5834,
+              0.8029
+            ],
+            "sigma": 0.35365,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.25011,
+              "scale": 0.00022
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9401,
+              3.0599
+            ],
+            "sigma": 0.28568,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.08 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28568
+            }
+          },
+          "area": {
+            "value": 0.2744,
+            "ci95": [
+              -1.4596,
+              2.0083
+            ],
+            "sigma": 0.88469,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R1.O1",
+          "kind": "window",
+          "wall_id": "R1.W5",
+          "center": [
+            -4.4837,
+            2.6795
+          ],
+          "width": {
+            "value": 1.0065,
+            "ci95": [
+              0.9972,
+              1.0158
+            ],
+            "sigma": 0.00476,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00307,
+              "plane_b": 0.00303,
+              "scale": 0.00201
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.8356,
+            "ci95": [
+              0.8052,
+              0.866
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R1",
+            "R2"
+          ],
+          "evidence": "closure:door, through-ratio 1.56, mirror-score 0.00"
+        }
+      ],
+      "surfaces": [
+        "R1.W1",
+        "R1.W2",
+        "R1.W3",
+        "R1.W4",
+        "R1.W5",
+        "R1.W6",
+        "R1.W7",
+        "R1.W8",
+        "R1.W9",
+        "R1.W10",
+        "R1.floor",
+        "R1.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "4 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R2",
+      "name": "Room 6",
+      "kind": "room",
+      "polygon": [
+        [
+          -5.1574,
+          3.4723
+        ],
+        [
+          -5.1574,
+          4.9144
+        ],
+        [
+          -6.8688,
+          4.9144
+        ],
+        [
+          -6.8688,
+          3.431
+        ],
+        [
+          -6.8546,
+          3.431
+        ],
+        [
+          -6.8546,
+          2.5722
+        ],
+        [
+          -3.9831,
+          2.5722
+        ],
+        [
+          -3.9831,
+          3.4723
+        ]
+      ],
+      "floor_area": {
+        "value": 5.0534,
+        "ci95": [
+          2.74,
+          7.3669
+        ],
+        "sigma": 1.18037,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 1.1802,
+          "scale": 0.02021
+        }
+      },
+      "perimeter": {
+        "value": 10.4558,
+        "ci95": [
+          9.3589,
+          11.5528
+        ],
+        "sigma": 0.55967,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.9,
+          3.1
+        ],
+        "sigma": 0.30612,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.30612
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": 0.0016,
+      "walls": [
+        {
+          "id": "R2.W1",
+          "start": [
+            -5.1574,
+            3.4723
+          ],
+          "end": [
+            -5.1574,
+            4.9144
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.4421,
+            "ci95": [
+              0.7481,
+              2.136
+            ],
+            "sigma": 0.35407,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25068,
+              "plane_b": 0.25004,
+              "scale": 0.00288
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 3.6051,
+            "ci95": [
+              1.6664,
+              5.5438
+            ],
+            "sigma": 0.98915,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.846,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R2.W2",
+          "start": [
+            -5.1574,
+            4.9144
+          ],
+          "end": [
+            -6.8688,
+            4.9144
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.7114,
+            "ci95": [
+              1.2208,
+              2.202
+            ],
+            "sigma": 0.25032,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25005,
+              "plane_b": 0.01119,
+              "scale": 0.00342
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 4.2785,
+            "ci95": [
+              2.6789,
+              5.8782
+            ],
+            "sigma": 0.81616,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.929,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R2.W3",
+          "start": [
+            -6.8688,
+            4.9144
+          ],
+          "end": [
+            -6.8688,
+            3.431
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.4834,
+            "ci95": [
+              0.7903,
+              2.1765
+            ],
+            "sigma": 0.35363,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.25005,
+              "scale": 0.00297
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 3.7084,
+            "ci95": [
+              1.7605,
+              5.6564
+            ],
+            "sigma": 0.99387,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.478,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R2.W4",
+          "start": [
+            -6.8688,
+            3.431
+          ],
+          "end": [
+            -6.8546,
+            3.431
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 0.0141,
+            "ci95": [
+              -0.0092,
+              0.0374
+            ],
+            "sigma": 0.01189,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.01119,
+              "plane_b": 0.00404,
+              "scale": 3e-05
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 0.0353,
+            "ci95": [
+              -0.0236,
+              0.0942
+            ],
+            "sigma": 0.03004,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R2.W5",
+          "start": [
+            -6.8546,
+            3.431
+          ],
+          "end": [
+            -6.8546,
+            2.5722
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.8589,
+            "ci95": [
+              0.3683,
+              1.3494
+            ],
+            "sigma": 0.2503,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25005,
+              "plane_b": 0.01095,
+              "scale": 0.00172
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 2.1471,
+            "ci95": [
+              0.8168,
+              3.4774
+            ],
+            "sigma": 0.67874,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R2.O1"
+          ]
+        },
+        {
+          "id": "R2.W6",
+          "start": [
+            -6.8546,
+            2.5722
+          ],
+          "end": [
+            -3.9831,
+            2.5722
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.8716,
+            "ci95": [
+              2.3813,
+              3.3618
+            ],
+            "sigma": 0.25013,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.25003,
+              "scale": 0.00574
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 7.179,
+            "ci95": [
+              5.0646,
+              9.2933
+            ],
+            "sigma": 1.07878,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.491,
+          "observed": true,
+          "openings": [
+            "R2.O2"
+          ]
+        },
+        {
+          "id": "R2.W7",
+          "start": [
+            -3.9831,
+            2.5722
+          ],
+          "end": [
+            -3.9831,
+            3.4723
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.9002,
+            "ci95": [
+              0.4084,
+              1.392
+            ],
+            "sigma": 0.25093,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.01095,
+              "plane_b": 0.25068,
+              "scale": 0.0018
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 2.2504,
+            "ci95": [
+              0.9075,
+              3.5933
+            ],
+            "sigma": 0.68517,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R2.W8",
+          "start": [
+            -3.9831,
+            3.4723
+          ],
+          "end": [
+            -5.1574,
+            3.4723
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.1743,
+            "ci95": [
+              0.4812,
+              1.8674
+            ],
+            "sigma": 0.35362,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.25005,
+              "scale": 0.00235
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 2.9357,
+            "ci95": [
+              1.0653,
+              4.8062
+            ],
+            "sigma": 0.95434,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.143,
+          "observed": false,
+          "openings": [
+            "R2.O3"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "R2.O1",
+          "kind": "window",
+          "wall_id": "R2.W5",
+          "center": [
+            -6.8546,
+            2.9825
+          ],
+          "width": {
+            "value": 0.8639,
+            "ci95": [
+              0.8514,
+              0.8764
+            ],
+            "sigma": 0.00637,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00305,
+              "plane_b": 0.00532,
+              "scale": 0.00173
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.8943,
+            "ci95": [
+              0.8639,
+              0.9248
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R2"
+          ],
+          "evidence": "closure:door, through-ratio 0.87, mirror-score 0.23"
+        },
+        {
+          "id": "R2.O2",
+          "kind": "door",
+          "wall_id": "R2.W6",
+          "center": [
+            -4.4729,
+            2.5722
+          ],
+          "width": {
+            "value": 1.0533,
+            "ci95": [
+              1.0393,
+              1.0674
+            ],
+            "sigma": 0.00715,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00312,
+              "plane_b": 0.00609,
+              "scale": 0.00211
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R2",
+            "R1"
+          ],
+          "evidence": "closure:door, through-ratio 4.41, mirror-score 0.11"
+        },
+        {
+          "id": "R2.O3",
+          "kind": "door",
+          "wall_id": "R2.W8",
+          "center": [
+            -4.4289,
+            3.4723
+          ],
+          "width": {
+            "value": 0.8973,
+            "ci95": [
+              0.8879,
+              0.9066
+            ],
+            "sigma": 0.00476,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00308,
+              "plane_b": 0.00315,
+              "scale": 0.00179
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R2",
+            "R3"
+          ],
+          "evidence": "closure:door, through-ratio 2.70, mirror-score 0.04"
+        }
+      ],
+      "surfaces": [
+        "R2.W1",
+        "R2.W2",
+        "R2.W3",
+        "R2.W4",
+        "R2.W5",
+        "R2.W6",
+        "R2.W7",
+        "R2.W8",
+        "R2.floor",
+        "R2.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "5 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R3",
+      "name": "Room 1",
+      "kind": "room",
+      "polygon": [
+        [
+          -5.188,
+          3.553
+        ],
+        [
+          -3.6024,
+          3.553
+        ],
+        [
+          -3.6024,
+          0.173
+        ],
+        [
+          -2.1478,
+          0.173
+        ],
+        [
+          -2.1478,
+          0.6045
+        ],
+        [
+          -0.7493,
+          0.6045
+        ],
+        [
+          -0.7493,
+          3.7696
+        ],
+        [
+          -0.8348,
+          3.7696
+        ],
+        [
+          -0.8348,
+          4.4495
+        ],
+        [
+          -0.6508,
+          4.4495
+        ],
+        [
+          -0.6508,
+          4.877
+        ],
+        [
+          -2.9657,
+          4.877
+        ],
+        [
+          -2.9657,
+          5.077
+        ],
+        [
+          -5.188,
+          5.077
+        ]
+      ],
+      "floor_area": {
+        "value": 15.3454,
+        "ci95": [
+          10.9421,
+          19.7487
+        ],
+        "sigma": 2.24664,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 2.2458,
+          "scale": 0.06138
+        }
+      },
+      "perimeter": {
+        "value": 19.0536,
+        "ci95": [
+          17.5463,
+          20.5609
+        ],
+        "sigma": 0.76905,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.9121,
+          3.0879
+        ],
+        "sigma": 0.29996,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.29996
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": 0.004,
+      "walls": [
+        {
+          "id": "R3.W1",
+          "start": [
+            -5.188,
+            3.553
+          ],
+          "end": [
+            -3.6024,
+            3.553
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.5856,
+            "ci95": [
+              1.0954,
+              2.0757
+            ],
+            "sigma": 0.25009,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.00456,
+              "scale": 0.00317
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 3.9639,
+            "ci95": [
+              2.4242,
+              5.5036
+            ],
+            "sigma": 0.78557,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.483,
+          "observed": true,
+          "openings": [
+            "R3.O1"
+          ]
+        },
+        {
+          "id": "R3.W2",
+          "start": [
+            -3.6024,
+            3.553
+          ],
+          "end": [
+            -3.6024,
+            0.173
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.38,
+            "ci95": [
+              3.3533,
+              3.4067
+            ],
+            "sigma": 0.01361,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.0111,
+              "plane_b": 0.00404,
+              "scale": 0.00676
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 8.45,
+            "ci95": [
+              6.4618,
+              10.4383
+            ],
+            "sigma": 1.01443,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.892,
+          "observed": true,
+          "openings": [
+            "R3.O2"
+          ]
+        },
+        {
+          "id": "R3.W3",
+          "start": [
+            -3.6024,
+            0.173
+          ],
+          "end": [
+            -2.1478,
+            0.173
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.4546,
+            "ci95": [
+              1.4359,
+              1.4733
+            ],
+            "sigma": 0.00952,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00456,
+              "plane_b": 0.00784,
+              "scale": 0.00291
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 3.6365,
+            "ci95": [
+              2.78,
+              4.4929
+            ],
+            "sigma": 0.43697,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W4",
+          "start": [
+            -2.1478,
+            0.173
+          ],
+          "end": [
+            -2.1478,
+            0.6045
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.4315,
+            "ci95": [
+              -0.0586,
+              0.9216
+            ],
+            "sigma": 0.25007,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.25004,
+              "scale": 0.00086
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 1.0788,
+            "ci95": [
+              -0.1726,
+              2.3301
+            ],
+            "sigma": 0.63844,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.667,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W5",
+          "start": [
+            -2.1478,
+            0.6045
+          ],
+          "end": [
+            -0.7493,
+            0.6045
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.3985,
+            "ci95": [
+              0.9082,
+              1.8889
+            ],
+            "sigma": 0.25017,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00784,
+              "plane_b": 0.25003,
+              "scale": 0.0028
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 3.4963,
+            "ci95": [
+              2.0203,
+              4.9724
+            ],
+            "sigma": 0.75309,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.92,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W6",
+          "start": [
+            -0.7493,
+            0.6045
+          ],
+          "end": [
+            -0.7493,
+            3.7696
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.1651,
+            "ci95": [
+              2.3985,
+              3.9317
+            ],
+            "sigma": 0.39112,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.30069,
+              "scale": 0.00633
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 7.9128,
+            "ci95": [
+              5.2416,
+              10.584
+            ],
+            "sigma": 1.36289,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W7",
+          "start": [
+            -0.7493,
+            3.7696
+          ],
+          "end": [
+            -0.8348,
+            3.7696
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 0.0855,
+            "ci95": [
+              -0.6081,
+              0.7792
+            ],
+            "sigma": 0.35391,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.25047,
+              "scale": 0.00017
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 0.2139,
+            "ci95": [
+              -1.521,
+              1.9487
+            ],
+            "sigma": 0.88514,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W8",
+          "start": [
+            -0.8348,
+            3.7696
+          ],
+          "end": [
+            -0.8348,
+            4.4495
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.6799,
+            "ci95": [
+              -0.0866,
+              1.4464
+            ],
+            "sigma": 0.39109,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.30069,
+              "plane_b": 0.25006,
+              "scale": 0.00136
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 1.6998,
+            "ci95": [
+              -0.2578,
+              3.6573
+            ],
+            "sigma": 0.99876,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.273,
+          "observed": false,
+          "openings": [
+            "R3.O3"
+          ]
+        },
+        {
+          "id": "R3.W9",
+          "start": [
+            -0.8348,
+            4.4495
+          ],
+          "end": [
+            -0.6508,
+            4.4495
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 0.1841,
+            "ci95": [
+              -0.5101,
+              0.8782
+            ],
+            "sigma": 0.35415,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25047,
+              "plane_b": 0.25038,
+              "scale": 0.00037
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 0.4602,
+            "ci95": [
+              -1.2785,
+              2.1989
+            ],
+            "sigma": 0.8871,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W10",
+          "start": [
+            -0.6508,
+            4.4495
+          ],
+          "end": [
+            -0.6508,
+            4.877
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.4275,
+            "ci95": [
+              -0.2657,
+              1.1207
+            ],
+            "sigma": 0.35368,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25006,
+              "plane_b": 0.25012,
+              "scale": 0.00085
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 1.0687,
+            "ci95": [
+              -0.6825,
+              2.8198
+            ],
+            "sigma": 0.89346,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.4,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W11",
+          "start": [
+            -0.6508,
+            4.877
+          ],
+          "end": [
+            -2.9657,
+            4.877
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.3149,
+            "ci95": [
+              1.824,
+              2.8058
+            ],
+            "sigma": 0.25046,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25038,
+              "plane_b": 0.00404,
+              "scale": 0.00463
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 5.7873,
+            "ci95": [
+              3.9547,
+              7.6198
+            ],
+            "sigma": 0.93499,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.667,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W12",
+          "start": [
+            -2.9657,
+            4.877
+          ],
+          "end": [
+            -2.9657,
+            5.077
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.2,
+            "ci95": [
+              -0.4934,
+              0.8935
+            ],
+            "sigma": 0.35382,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25012,
+              "plane_b": 0.25025,
+              "scale": 0.0004
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 0.5001,
+            "ci95": [
+              -1.2376,
+              2.2378
+            ],
+            "sigma": 0.88658,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W13",
+          "start": [
+            -2.9657,
+            5.077
+          ],
+          "end": [
+            -5.188,
+            5.077
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.2223,
+            "ci95": [
+              1.7321,
+              2.7125
+            ],
+            "sigma": 0.2501,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.25003,
+              "scale": 0.00444
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 5.5558,
+            "ci95": [
+              3.7644,
+              7.3471
+            ],
+            "sigma": 0.91395,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.476,
+          "observed": false,
+          "openings": [
+            "R3.O4"
+          ]
+        },
+        {
+          "id": "R3.W14",
+          "start": [
+            -5.188,
+            5.077
+          ],
+          "end": [
+            -5.188,
+            3.553
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.524,
+            "ci95": [
+              1.033,
+              2.015
+            ],
+            "sigma": 0.25052,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25025,
+              "plane_b": 0.0111,
+              "scale": 0.00305
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9121,
+              3.0879
+            ],
+            "sigma": 0.29996,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.02 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.29996
+            }
+          },
+          "area": {
+            "value": 3.8101,
+            "ci95": [
+              2.2904,
+              5.3298
+            ],
+            "sigma": 0.77539,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R3.O1",
+          "kind": "door",
+          "wall_id": "R3.W1",
+          "center": [
+            -4.4332,
+            3.553
+          ],
+          "width": {
+            "value": 0.8923,
+            "ci95": [
+              0.8831,
+              0.9015
+            ],
+            "sigma": 0.00469,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00307,
+              "plane_b": 0.00305,
+              "scale": 0.00178
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R3",
+            "R2"
+          ],
+          "evidence": "closure:door, through-ratio 4.70, mirror-score 0.26"
+        },
+        {
+          "id": "R3.O2",
+          "kind": "window",
+          "wall_id": "R3.W2",
+          "center": [
+            -3.6024,
+            3.2694
+          ],
+          "width": {
+            "value": 0.5642,
+            "ci95": [
+              0.5087,
+              0.6197
+            ],
+            "sigma": 0.02831,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.02,
+              "scale": 0.00113
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.8712,
+            "ci95": [
+              0.8408,
+              0.9016
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R3",
+            "R2"
+          ],
+          "evidence": "closure:door, through-ratio 0.40, mirror-score 0.01"
+        },
+        {
+          "id": "R3.O3",
+          "kind": "door",
+          "wall_id": "R3.W8",
+          "center": [
+            -0.8348,
+            4.1004
+          ],
+          "width": {
+            "value": 0.6558,
+            "ci95": [
+              0.6457,
+              0.6659
+            ],
+            "sigma": 0.00515,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00393,
+              "plane_b": 0.00305,
+              "scale": 0.00131
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R3",
+            "R6"
+          ],
+          "evidence": "gap, through-ratio 4.28, mirror-score 0.06"
+        },
+        {
+          "id": "R3.O4",
+          "kind": "door",
+          "wall_id": "R3.W13",
+          "center": [
+            -3.5343,
+            5.077
+          ],
+          "width": {
+            "value": 1.1329,
+            "ci95": [
+              1.1231,
+              1.1427
+            ],
+            "sigma": 0.005,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00314,
+              "plane_b": 0.00316,
+              "scale": 0.00227
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R3",
+            "R4"
+          ],
+          "evidence": "closure:door, through-ratio 4.45, mirror-score 0.17"
+        }
+      ],
+      "surfaces": [
+        "R3.W1",
+        "R3.W2",
+        "R3.W3",
+        "R3.W4",
+        "R3.W5",
+        "R3.W6",
+        "R3.W7",
+        "R3.W8",
+        "R3.W9",
+        "R3.W10",
+        "R3.W11",
+        "R3.W12",
+        "R3.W13",
+        "R3.W14",
+        "R3.floor",
+        "R3.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "9 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R4",
+      "name": "Room 4",
+      "kind": "room",
+      "polygon": [
+        [
+          -5.2174,
+          8.4512
+        ],
+        [
+          -5.2174,
+          5.1102
+        ],
+        [
+          -2.9095,
+          5.1102
+        ],
+        [
+          -2.9095,
+          8.96
+        ],
+        [
+          -4.1306,
+          8.96
+        ],
+        [
+          -4.1306,
+          8.4512
+        ]
+      ],
+      "floor_area": {
+        "value": 8.3323,
+        "ci95": [
+          5.4225,
+          11.2421
+        ],
+        "sigma": 1.48461,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 1.48424,
+          "scale": 0.03333
+        }
+      },
+      "perimeter": {
+        "value": 12.3156,
+        "ci95": [
+          11.334,
+          13.2971
+        ],
+        "sigma": 0.5008,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.9,
+          3.1
+        ],
+        "sigma": 0.30612,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.30612
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": 0.0013,
+      "walls": [
+        {
+          "id": "R4.W1",
+          "start": [
+            -5.2174,
+            8.4512
+          ],
+          "end": [
+            -5.2174,
+            5.1102
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.341,
+            "ci95": [
+              2.8495,
+              3.8325
+            ],
+            "sigma": 0.25075,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.0177,
+              "scale": 0.00668
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 8.3525,
+            "ci95": [
+              6.0013,
+              10.7036
+            ],
+            "sigma": 1.19958,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.234,
+          "observed": false,
+          "openings": [
+            "R4.O1"
+          ]
+        },
+        {
+          "id": "R4.W2",
+          "start": [
+            -5.2174,
+            5.1102
+          ],
+          "end": [
+            -2.9095,
+            5.1102
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.308,
+            "ci95": [
+              1.614,
+              3.002
+            ],
+            "sigma": 0.3541,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.2505,
+              "plane_b": 0.25023,
+              "scale": 0.00462
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 5.77,
+            "ci95": [
+              3.55,
+              7.9899
+            ],
+            "sigma": 1.13263,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.14,
+          "observed": true,
+          "openings": [
+            "R4.O2"
+          ]
+        },
+        {
+          "id": "R4.W3",
+          "start": [
+            -2.9095,
+            5.1102
+          ],
+          "end": [
+            -2.9095,
+            8.96
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.8498,
+            "ci95": [
+              3.8111,
+              3.8885
+            ],
+            "sigma": 0.01974,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.0177,
+              "plane_b": 0.00413,
+              "scale": 0.0077
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 9.6245,
+            "ci95": [
+              7.3126,
+              11.9363
+            ],
+            "sigma": 1.17954,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.507,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R4.W4",
+          "start": [
+            -2.9095,
+            8.96
+          ],
+          "end": [
+            -4.1306,
+            8.96
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.2212,
+            "ci95": [
+              0.5279,
+              1.9145
+            ],
+            "sigma": 0.35374,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25023,
+              "plane_b": 0.25003,
+              "scale": 0.00244
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 3.053,
+            "ci95": [
+              1.1712,
+              4.9348
+            ],
+            "sigma": 0.96013,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.955,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R4.W5",
+          "start": [
+            -4.1306,
+            8.96
+          ],
+          "end": [
+            -4.1306,
+            8.4512
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.5088,
+            "ci95": [
+              0.0187,
+              0.9989
+            ],
+            "sigma": 0.25007,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00413,
+              "plane_b": 0.25003,
+              "scale": 0.00102
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 1.272,
+            "ci95": [
+              0.0092,
+              2.5348
+            ],
+            "sigma": 0.64429,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R4.W6",
+          "start": [
+            -4.1306,
+            8.4512
+          ],
+          "end": [
+            -5.2174,
+            8.4512
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.0868,
+            "ci95": [
+              0.3931,
+              1.7805
+            ],
+            "sigma": 0.35394,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.2505,
+              "scale": 0.00217
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 2.717,
+            "ci95": [
+              0.8642,
+              4.5698
+            ],
+            "sigma": 0.94532,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.947,
+          "observed": false,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R4.O1",
+          "kind": "window",
+          "wall_id": "R4.W1",
+          "center": [
+            -5.2174,
+            6.793
+          ],
+          "width": {
+            "value": 3.3548,
+            "ci95": [
+              3.3392,
+              3.3704
+            ],
+            "sigma": 0.00796,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00303,
+              "plane_b": 0.00301,
+              "scale": 0.00671
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.1832,
+            "ci95": [
+              0.1528,
+              0.2137
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R4"
+          ],
+          "evidence": "closure:window_or_glass, through-ratio 0.95, mirror-score 0.00"
+        },
+        {
+          "id": "R4.O2",
+          "kind": "door",
+          "wall_id": "R4.W2",
+          "center": [
+            -3.5322,
+            5.1102
+          ],
+          "width": {
+            "value": 1.1375,
+            "ci95": [
+              1.1278,
+              1.1473
+            ],
+            "sigma": 0.00497,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00314,
+              "plane_b": 0.00312,
+              "scale": 0.00228
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R4",
+            "R3"
+          ],
+          "evidence": "closure:door, through-ratio 3.83, mirror-score 0.01"
+        }
+      ],
+      "surfaces": [
+        "R4.W1",
+        "R4.W2",
+        "R4.W3",
+        "R4.W4",
+        "R4.W5",
+        "R4.W6",
+        "R4.floor",
+        "R4.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "4 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R5",
+      "name": "Room 5",
+      "kind": "room",
+      "polygon": [
+        [
+          0.1247,
+          3.4165
+        ],
+        [
+          2.7438,
+          3.4165
+        ],
+        [
+          2.7438,
+          5.733
+        ],
+        [
+          0.1247,
+          5.733
+        ]
+      ],
+      "floor_area": {
+        "value": 6.0673,
+        "ci95": [
+          2.6447,
+          9.4899
+        ],
+        "sigma": 1.74625,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 1.74609,
+          "scale": 0.02427
+        }
+      },
+      "perimeter": {
+        "value": 9.8713,
+        "ci95": [
+          8.8907,
+          10.852
+        ],
+        "sigma": 0.50035,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.9,
+          3.1
+        ],
+        "sigma": 0.30612,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.30612
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": -0.0069,
+      "walls": [
+        {
+          "id": "R5.W1",
+          "start": [
+            0.1247,
+            3.4165
+          ],
+          "end": [
+            2.7438,
+            3.4165
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.6191,
+            "ci95": [
+              1.9256,
+              3.3126
+            ],
+            "sigma": 0.35384,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25018,
+              "plane_b": 0.25017,
+              "scale": 0.00524
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 6.5478,
+            "ci95": [
+              4.2078,
+              8.8877
+            ],
+            "sigma": 1.19388,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.58,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R5.W2",
+          "start": [
+            2.7438,
+            3.4165
+          ],
+          "end": [
+            2.7438,
+            5.733
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.3166,
+            "ci95": [
+              1.6232,
+              3.0099
+            ],
+            "sigma": 0.35377,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25017,
+              "plane_b": 0.25009,
+              "scale": 0.00463
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 5.7914,
+            "ci95": [
+              3.5695,
+              8.0133
+            ],
+            "sigma": 1.13362,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.591,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R5.W3",
+          "start": [
+            2.7438,
+            5.733
+          ],
+          "end": [
+            0.1247,
+            5.733
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.6191,
+            "ci95": [
+              1.9256,
+              3.3126
+            ],
+            "sigma": 0.35384,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25017,
+              "plane_b": 0.25018,
+              "scale": 0.00524
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 6.5478,
+            "ci95": [
+              4.2078,
+              8.8877
+            ],
+            "sigma": 1.19388,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.74,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R5.W4",
+          "start": [
+            0.1247,
+            5.733
+          ],
+          "end": [
+            0.1247,
+            3.4165
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.3166,
+            "ci95": [
+              1.6232,
+              3.0099
+            ],
+            "sigma": 0.35377,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25009,
+              "plane_b": 0.25017,
+              "scale": 0.00463
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.9,
+              3.1
+            ],
+            "sigma": 0.30612,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.00 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.30612
+            }
+          },
+          "area": {
+            "value": 5.7914,
+            "ci95": [
+              3.5695,
+              8.0133
+            ],
+            "sigma": 1.13362,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.568,
+          "observed": false,
+          "openings": [
+            "R5.O1"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "R5.O1",
+          "kind": "door",
+          "wall_id": "R5.W4",
+          "center": [
+            0.1247,
+            4.0466
+          ],
+          "width": {
+            "value": 0.6955,
+            "ci95": [
+              0.6864,
+              0.7046
+            ],
+            "sigma": 0.00464,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.0032,
+              "plane_b": 0.00307,
+              "scale": 0.00139
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R5",
+            "R6"
+          ],
+          "evidence": "closure:door, through-ratio 3.21, mirror-score 0.00"
+        }
+      ],
+      "surfaces": [
+        "R5.W1",
+        "R5.W2",
+        "R5.W3",
+        "R5.W4",
+        "R5.floor",
+        "R5.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "4 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R6",
+      "name": "Room 2",
+      "kind": "room",
+      "polygon": [
+        [
+          -0.6541,
+          4.405
+        ],
+        [
+          -0.6541,
+          0.0392
+        ],
+        [
+          0.224,
+          0.0392
+        ],
+        [
+          0.224,
+          -0.314
+        ],
+        [
+          2.4832,
+          -0.314
+        ],
+        [
+          2.4832,
+          2.6421
+        ],
+        [
+          0.3406,
+          2.6421
+        ],
+        [
+          0.3406,
+          4.405
+        ]
+      ],
+      "floor_area": {
+        "value": 10.7175,
+        "ci95": [
+          6.6033,
+          14.8316
+        ],
+        "sigma": 2.0991,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 2.09866,
+          "scale": 0.04287
+        }
+      },
+      "perimeter": {
+        "value": 15.7127,
+        "ci95": [
+          14.5116,
+          16.9137
+        ],
+        "sigma": 0.61278,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.5,
+        "ci95": [
+          1.946,
+          3.054
+        ],
+        "sigma": 0.28264,
+        "unit": "m",
+        "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+        "budget": {
+          "prior": 0.28264
+        }
+      },
+      "ceiling_observed": false,
+      "floor_elevation": -0.0138,
+      "walls": [
+        {
+          "id": "R6.W1",
+          "start": [
+            -0.6541,
+            4.405
+          ],
+          "end": [
+            -0.6541,
+            0.0392
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 4.3658,
+            "ci95": [
+              3.8754,
+              4.8563
+            ],
+            "sigma": 0.25022,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.00401,
+              "scale": 0.00873
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 10.9146,
+            "ci95": [
+              8.2031,
+              13.6261
+            ],
+            "sigma": 1.38346,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.753,
+          "observed": true,
+          "openings": [
+            "R6.O1"
+          ]
+        },
+        {
+          "id": "R6.W2",
+          "start": [
+            -0.6541,
+            0.0392
+          ],
+          "end": [
+            0.224,
+            0.0392
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 0.8781,
+            "ci95": [
+              0.3878,
+              1.3684
+            ],
+            "sigma": 0.25016,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00638,
+              "plane_b": 0.25007,
+              "scale": 0.00176
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 2.1952,
+            "ci95": [
+              0.8765,
+              3.5139
+            ],
+            "sigma": 0.67283,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R6.O2"
+          ]
+        },
+        {
+          "id": "R6.W3",
+          "start": [
+            0.224,
+            0.0392
+          ],
+          "end": [
+            0.224,
+            -0.314
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.3533,
+            "ci95": [
+              -0.1369,
+              0.8434
+            ],
+            "sigma": 0.2501,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00401,
+              "plane_b": 0.25007,
+              "scale": 0.00071
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 0.8831,
+            "ci95": [
+              -0.3579,
+              2.1241
+            ],
+            "sigma": 0.63318,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.8,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R6.W4",
+          "start": [
+            0.224,
+            -0.314
+          ],
+          "end": [
+            2.4832,
+            -0.314
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.2592,
+            "ci95": [
+              1.5655,
+              2.9528
+            ],
+            "sigma": 0.35391,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25007,
+              "plane_b": 0.2504,
+              "scale": 0.00452
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 5.6479,
+            "ci95": [
+              3.5093,
+              7.7865
+            ],
+            "sigma": 1.09113,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.786,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R6.W5",
+          "start": [
+            2.4832,
+            -0.314
+          ],
+          "end": [
+            2.4832,
+            2.6421
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.9562,
+            "ci95": [
+              2.263,
+              3.6494
+            ],
+            "sigma": 0.35367,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25007,
+              "plane_b": 0.25003,
+              "scale": 0.00591
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 7.3904,
+            "ci95": [
+              5.0061,
+              9.7748
+            ],
+            "sigma": 1.21651,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.321,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R6.W6",
+          "start": [
+            2.4832,
+            2.6421
+          ],
+          "end": [
+            0.3406,
+            2.6421
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.1426,
+            "ci95": [
+              1.4489,
+              2.8364
+            ],
+            "sigma": 0.35395,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.2504,
+              "plane_b": 0.25012,
+              "scale": 0.00429
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 5.3566,
+            "ci95": [
+              3.255,
+              7.4582
+            ],
+            "sigma": 1.07226,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R6.W7",
+          "start": [
+            0.3406,
+            2.6421
+          ],
+          "end": [
+            0.3406,
+            4.405
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.7629,
+            "ci95": [
+              1.0698,
+              2.456
+            ],
+            "sigma": 0.35362,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.25003,
+              "scale": 0.00353
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 4.4073,
+            "ci95": [
+              2.4183,
+              6.3962
+            ],
+            "sigma": 1.01479,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.667,
+          "observed": false,
+          "openings": [
+            "R6.O3"
+          ]
+        },
+        {
+          "id": "R6.W8",
+          "start": [
+            0.3406,
+            4.405
+          ],
+          "end": [
+            -0.6541,
+            4.405
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 0.9946,
+            "ci95": [
+              0.5042,
+              1.485
+            ],
+            "sigma": 0.25021,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25012,
+              "plane_b": 0.00638,
+              "scale": 0.00199
+            }
+          },
+          "height": {
+            "value": 2.5,
+            "ci95": [
+              1.946,
+              3.054
+            ],
+            "sigma": 0.28264,
+            "unit": "m",
+            "method": "NOT OBSERVED: ceiling not in capture; lower bound 2.09 m from wall extent, prior 2.5-3.2 m",
+            "budget": {
+              "prior": 0.28264
+            }
+          },
+          "area": {
+            "value": 2.4865,
+            "ci95": [
+              1.1424,
+              3.8306
+            ],
+            "sigma": 0.68579,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R6.O1",
+          "kind": "door",
+          "wall_id": "R6.W1",
+          "center": [
+            -0.6541,
+            4.0963
+          ],
+          "width": {
+            "value": 0.6477,
+            "ci95": [
+              0.6375,
+              0.6579
+            ],
+            "sigma": 0.00522,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00393,
+              "plane_b": 0.00318,
+              "scale": 0.0013
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R6",
+            "R3"
+          ],
+          "evidence": "gap, through-ratio 4.91, mirror-score 0.15"
+        },
+        {
+          "id": "R6.O2",
+          "kind": "window",
+          "wall_id": "R6.W2",
+          "center": [
+            -0.114,
+            0.0392
+          ],
+          "width": {
+            "value": 0.6932,
+            "ci95": [
+              0.6826,
+              0.7039
+            ],
+            "sigma": 0.00542,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00303,
+              "plane_b": 0.00428,
+              "scale": 0.00139
+            }
+          },
+          "height": {
+            "value": 1.8139,
+            "ci95": [
+              1.7928,
+              1.835
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8605,
+            "ci95": [
+              0.83,
+              0.8909
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R6"
+          ],
+          "evidence": "gap, through-ratio 0.32, mirror-score 0.11"
+        },
+        {
+          "id": "R6.O3",
+          "kind": "door",
+          "wall_id": "R6.W7",
+          "center": [
+            0.3406,
+            4.0377
+          ],
+          "width": {
+            "value": 0.6968,
+            "ci95": [
+              0.6878,
+              0.7059
+            ],
+            "sigma": 0.00463,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00316,
+              "plane_b": 0.00308,
+              "scale": 0.00139
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R6",
+            "R5"
+          ],
+          "evidence": "closure:door, through-ratio 4.67, mirror-score 0.13"
+        }
+      ],
+      "surfaces": [
+        "R6.W1",
+        "R6.W2",
+        "R6.W3",
+        "R6.W4",
+        "R6.W5",
+        "R6.W6",
+        "R6.W7",
+        "R6.W8",
+        "R6.floor",
+        "R6.ceiling"
+      ],
+      "notes": [
+        "ceiling not observed: ceiling height is a bounded prior, not a measurement",
+        "6 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    }
+  ],
+  "adjacency": [
+    {
+      "rooms": [
+        "R1",
+        "R2"
+      ],
+      "via": [
+        "R1.O1",
+        "R2.O2"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R2",
+        "R3"
+      ],
+      "via": [
+        "R2.O3",
+        "R3.O1",
+        "R3.O2"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R3",
+        "R6"
+      ],
+      "via": [
+        "R3.O3",
+        "R6.O1"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R3",
+        "R4"
+      ],
+      "via": [
+        "R3.O4",
+        "R4.O2"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R5",
+        "R6"
+      ],
+      "via": [
+        "R5.O1",
+        "R6.O3"
+      ],
+      "kind": "door"
+    }
+  ],
+  "stitched": {
+    "n_rooms": 6,
+    "footprint_area": {
+      "value": 55.4322,
+      "ci95": [
+        36.9868,
+        73.8776
+      ],
+      "sigma": 9.4111,
+      "unit": "m2",
+      "method": "union of room floor polygons (net internal area)",
+      "budget": {
+        "edges": 9.40848,
+        "scale": 0.22173
+      }
+    },
+    "bbox": {
+      "min": [
+        -6.8688,
+        -1.3528
+      ],
+      "max": [
+        2.7438,
+        8.96
+      ]
+    }
+  },
+  "drift": {
+    "enabled": false,
+    "method": "none (poses used as captured)",
+    "runtime_s": 12.82
+  },
+  "damage": [],
+  "concealed_damage_flags": [],
+  "scope": [],
+  "warnings": [],
+  "timings_s": {
+    "load": 0.07,
+    "layout": 12.82,
+    "total": 12.89
+  },
+  "environment": {
+    "python": "3.12.14",
+    "machine": "arm64",
+    "generated_at": "2026-10-02T16:51:06"
+  }
+}

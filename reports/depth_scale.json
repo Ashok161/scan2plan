@@ -1,0 +1,124 @@
+{
+  "licenses": {
+    "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf": "Apache-2.0",
+    "depth-anything/Depth-Anything-V2-Metric-Indoor-Base-hf": "CC-BY-NC-4.0 (non-commercial)",
+    "apple/DepthPro-hf": "apple-amlr (Apple ML Research License, non-commercial/research use only)"
+  },
+  "captures": [
+    {
+      "capture": "c00a170fe1",
+      "n_frames_selected": 24,
+      "models": {
+        "depth_anything_small": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.2713,
+          "scale_bias_spread_mad_std": 0.1951,
+          "scale_bias_pct": 27.1,
+          "absrel_median": 0.347,
+          "absrel_mean": 0.5029
+        },
+        "depth_anything_base": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.2991,
+          "scale_bias_spread_mad_std": 0.1523,
+          "scale_bias_pct": 29.9,
+          "absrel_median": 0.3456,
+          "absrel_mean": 0.5111
+        },
+        "depthpro_own_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.3576,
+          "scale_bias_spread_mad_std": 0.2633,
+          "scale_bias_pct": 35.8,
+          "absrel_median": 0.3573,
+          "absrel_mean": 94.9187
+        },
+        "depthpro_true_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.0886,
+          "scale_bias_spread_mad_std": 0.2301,
+          "scale_bias_pct": 8.9,
+          "absrel_median": 0.1909,
+          "absrel_mean": 75.4901
+        }
+      }
+    },
+    {
+      "capture": "1a8384c3f6",
+      "n_frames_selected": 24,
+      "models": {
+        "depth_anything_small": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.2815,
+          "scale_bias_spread_mad_std": 0.1968,
+          "scale_bias_pct": 28.2,
+          "absrel_median": 0.3015,
+          "absrel_mean": 0.3865
+        },
+        "depth_anything_base": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.3199,
+          "scale_bias_spread_mad_std": 0.1944,
+          "scale_bias_pct": 32.0,
+          "absrel_median": 0.3372,
+          "absrel_mean": 0.4159
+        },
+        "depthpro_own_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.4826,
+          "scale_bias_spread_mad_std": 0.3186,
+          "scale_bias_pct": 48.3,
+          "absrel_median": 0.5752,
+          "absrel_mean": 105.7111
+        },
+        "depthpro_true_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.1776,
+          "scale_bias_spread_mad_std": 0.2571,
+          "scale_bias_pct": 17.8,
+          "absrel_median": 0.3164,
+          "absrel_mean": 91.9881
+        }
+      }
+    },
+    {
+      "capture": "c7d28f72c6",
+      "n_frames_selected": 24,
+      "models": {
+        "depth_anything_small": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.4297,
+          "scale_bias_spread_mad_std": 0.3719,
+          "scale_bias_pct": 43.0,
+          "absrel_median": 0.434,
+          "absrel_mean": 0.4802
+        },
+        "depth_anything_base": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.4381,
+          "scale_bias_spread_mad_std": 0.2831,
+          "scale_bias_pct": 43.8,
+          "absrel_median": 0.4748,
+          "absrel_mean": 0.4819
+        },
+        "depthpro_own_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.4228,
+          "scale_bias_spread_mad_std": 0.2876,
+          "scale_bias_pct": 42.3,
+          "absrel_median": 0.4566,
+          "absrel_mean": 330.0203
+        },
+        "depthpro_true_focal": {
+          "n_frames": 23,
+          "scale_bias_median_pred_over_lidar": 1.1843,
+          "scale_bias_spread_mad_std": 0.3196,
+          "scale_bias_pct": 18.4,
+          "absrel_median": 0.2132,
+          "absrel_mean": 274.0719
+        }
+      }
+    }
+  ],
+  "runtime_sec": 280.8
+}

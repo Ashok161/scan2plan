@@ -1,0 +1,12 @@
+capture: <capture_id>
+instrument: "<laser model>, accuracy +-1.5 mm"
+measured_by: "<name>"
+date: YYYY-MM-DD
+rooms:
+  - room: "Room 1"            # name shown on plan.png
+    ceiling_height_m: 0.000   # floor to ceiling, room centre
+    walls:                    # wall-to-wall interior lengths
+      - {wall: R1.W1, length_m: 0.000}
+    openings:
+      - {opening: R1.O1, width_m: 0.000, height_m: 0.000}
+footprint_net_m2: 0.0          # optional

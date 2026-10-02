@@ -1,0 +1,3711 @@
+{
+  "schema_version": "1.0.0",
+  "pipeline_version": "0.1.0",
+  "capture": {
+    "id": "c7d28f72c6",
+    "tier": "lidar",
+    "source": "/Users/ashok.ramavath/Assignment/data/c7d28f72c6",
+    "input_sha1": "6812d73a972fa4e371359dfcfb0fb51be3b2d732",
+    "meta": {
+      "device_format": "StrayScanner",
+      "n_frames": 9745,
+      "video": "/Users/ashok.ramavath/Assignment/data/c7d28f72c6/rgb.mp4"
+    }
+  },
+  "tier": "lidar",
+  "units": {
+    "length": "m",
+    "area": "m2",
+    "ci": "95% two-sided, value +- 1.96 sigma"
+  },
+  "frame": {
+    "description": "plan frame: +Y up (gravity), dominant walls along X and Z; plan coordinates are (x, z); drawn top-down as (x, -z)",
+    "T_align": [
+      [
+        0.883637,
+        0.0,
+        0.468172,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        -0.468172,
+        0.0,
+        0.883637,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "rooms": [
+    {
+      "id": "R1",
+      "name": "Room 5",
+      "kind": "room",
+      "polygon": [
+        [
+          -0.3573,
+          4.5488
+        ],
+        [
+          -0.7792,
+          4.5488
+        ],
+        [
+          -0.7792,
+          2.6772
+        ],
+        [
+          0.9364,
+          2.6772
+        ],
+        [
+          0.9364,
+          5.2378
+        ],
+        [
+          -0.3573,
+          5.2378
+        ]
+      ],
+      "floor_area": {
+        "value": 4.1023,
+        "ci95": [
+          3.5577,
+          4.6469
+        ],
+        "sigma": 0.27785,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 0.27737,
+          "scale": 0.01641
+        }
+      },
+      "perimeter": {
+        "value": 8.5525,
+        "ci95": [
+          8.0615,
+          9.0435
+        ],
+        "sigma": 0.25051,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.2789,
+        "ci95": [
+          2.2646,
+          2.2931
+        ],
+        "sigma": 0.00728,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00042,
+          "plane_bias": 0.00566,
+          "scale": 0.00456
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": -0.0122,
+      "walls": [
+        {
+          "id": "R1.W1",
+          "start": [
+            -0.3573,
+            4.5488
+          ],
+          "end": [
+            -0.7792,
+            4.5488
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 0.4219,
+            "ci95": [
+              0.4107,
+              0.4332
+            ],
+            "sigma": 0.00575,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.00402,
+              "scale": 0.00084
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 0.9615,
+            "ci95": [
+              0.9351,
+              0.9879
+            ],
+            "sigma": 0.01345,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W2",
+          "start": [
+            -0.7792,
+            4.5488
+          ],
+          "end": [
+            -0.7792,
+            2.6772
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.8716,
+            "ci95": [
+              1.3812,
+              2.362
+            ],
+            "sigma": 0.25022,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.25016,
+              "scale": 0.00374
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 4.2652,
+            "ci95": [
+              3.1472,
+              5.3831
+            ],
+            "sigma": 0.57039,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R1.O1"
+          ]
+        },
+        {
+          "id": "R1.W3",
+          "start": [
+            -0.7792,
+            2.6772
+          ],
+          "end": [
+            0.9364,
+            2.6772
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.7156,
+            "ci95": [
+              1.6952,
+              1.736
+            ],
+            "sigma": 0.01039,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.00895,
+              "scale": 0.00343
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 3.9097,
+            "ci95": [
+              3.8572,
+              3.9621
+            ],
+            "sigma": 0.02678,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.594,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R1.W4",
+          "start": [
+            0.9364,
+            2.6772
+          ],
+          "end": [
+            0.9364,
+            5.2378
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.5606,
+            "ci95": [
+              2.0701,
+              3.0511
+            ],
+            "sigma": 0.25025,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25016,
+              "plane_b": 0.00401,
+              "scale": 0.00512
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 5.8353,
+            "ci95": [
+              4.717,
+              6.9536
+            ],
+            "sigma": 0.57059,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.6,
+          "observed": true,
+          "openings": [
+            "R1.O2"
+          ]
+        },
+        {
+          "id": "R1.W5",
+          "start": [
+            0.9364,
+            5.2378
+          ],
+          "end": [
+            -0.3573,
+            5.2378
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.2937,
+            "ci95": [
+              1.2738,
+              1.3136
+            ],
+            "sigma": 0.01015,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00895,
+              "plane_b": 0.00402,
+              "scale": 0.00259
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 2.9482,
+            "ci95": [
+              2.8992,
+              2.9971
+            ],
+            "sigma": 0.02497,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R1.W6",
+          "start": [
+            -0.3573,
+            5.2378
+          ],
+          "end": [
+            -0.3573,
+            4.5488
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.689,
+            "ci95": [
+              0.6775,
+              0.7004
+            ],
+            "sigma": 0.00585,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00401,
+              "plane_b": 0.00402,
+              "scale": 0.00138
+            }
+          },
+          "height": {
+            "value": 2.2789,
+            "ci95": [
+              2.2646,
+              2.2931
+            ],
+            "sigma": 0.00728,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00456
+            }
+          },
+          "area": {
+            "value": 1.5701,
+            "ci95": [
+              1.5422,
+              1.598
+            ],
+            "sigma": 0.01423,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R1.O1",
+          "kind": "window",
+          "wall_id": "R1.W2",
+          "center": [
+            -0.7792,
+            3.2051
+          ],
+          "width": {
+            "value": 0.6211,
+            "ci95": [
+              0.601,
+              0.6411
+            ],
+            "sigma": 0.01025,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00314,
+              "plane_b": 0.00967,
+              "scale": 0.00124
+            }
+          },
+          "height": {
+            "value": 1.7733,
+            "ci95": [
+              1.7522,
+              1.7944
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8958,
+            "ci95": [
+              0.8654,
+              0.9262
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R1"
+          ],
+          "evidence": "closure:door, through-ratio 0.53, mirror-score 0.17"
+        },
+        {
+          "id": "R1.O2",
+          "kind": "window",
+          "wall_id": "R1.W4",
+          "center": [
+            0.9364,
+            3.3682
+          ],
+          "width": {
+            "value": 0.4861,
+            "ci95": [
+              0.4307,
+              0.5416
+            ],
+            "sigma": 0.0283,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.02,
+              "scale": 0.00097
+            }
+          },
+          "height": {
+            "value": 2.0426,
+            "ci95": [
+              2.0215,
+              2.0637
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8142,
+            "ci95": [
+              0.7838,
+              0.8446
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R1"
+          ],
+          "evidence": "gap, through-ratio 1.09, mirror-score 0.11"
+        }
+      ],
+      "surfaces": [
+        "R1.W1",
+        "R1.W2",
+        "R1.W3",
+        "R1.W4",
+        "R1.W5",
+        "R1.W6",
+        "R1.floor",
+        "R1.ceiling"
+      ],
+      "notes": [
+        "1 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R2",
+      "name": "Room 3",
+      "kind": "room",
+      "polygon": [
+        [
+          -0.7515,
+          -1.1823
+        ],
+        [
+          2.2633,
+          -1.1823
+        ],
+        [
+          2.2633,
+          2.8249
+        ],
+        [
+          1.1179,
+          2.8249
+        ],
+        [
+          1.1179,
+          2.1514
+        ],
+        [
+          -0.7515,
+          2.1514
+        ]
+      ],
+      "floor_area": {
+        "value": 10.8218,
+        "ci95": [
+          10.6712,
+          10.9724
+        ],
+        "sigma": 0.07683,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 0.06348,
+          "scale": 0.04329
+        }
+      },
+      "perimeter": {
+        "value": 14.044,
+        "ci95": [
+          14.0022,
+          14.0857
+        ],
+        "sigma": 0.0213,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.9588,
+        "ci95": [
+          2.9427,
+          2.9749
+        ],
+        "sigma": 0.0082,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00048,
+          "plane_bias": 0.00566,
+          "scale": 0.00592
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": 0.001,
+      "walls": [
+        {
+          "id": "R2.W1",
+          "start": [
+            -0.7515,
+            -1.1823
+          ],
+          "end": [
+            2.2633,
+            -1.1823
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 3.0148,
+            "ci95": [
+              2.9985,
+              3.0311
+            ],
+            "sigma": 0.0083,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.00404,
+              "scale": 0.00603
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 8.9202,
+            "ci95": [
+              8.8519,
+              8.9885
+            ],
+            "sigma": 0.03485,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.983,
+          "observed": true,
+          "openings": [
+            "R2.O1"
+          ]
+        },
+        {
+          "id": "R2.W2",
+          "start": [
+            2.2633,
+            -1.1823
+          ],
+          "end": [
+            2.2633,
+            2.8249
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 4.0072,
+            "ci95": [
+              3.9703,
+              4.0441
+            ],
+            "sigma": 0.01882,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00405,
+              "plane_b": 0.01653,
+              "scale": 0.00801
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 11.8565,
+            "ci95": [
+              11.7298,
+              11.9832
+            ],
+            "sigma": 0.06465,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R2.W3",
+          "start": [
+            2.2633,
+            2.8249
+          ],
+          "end": [
+            1.1179,
+            2.8249
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.1454,
+            "ci95": [
+              1.1334,
+              1.1575
+            ],
+            "sigma": 0.00615,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00403,
+              "scale": 0.00229
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 3.389,
+            "ci95": [
+              3.3489,
+              3.4292
+            ],
+            "sigma": 0.02048,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.2,
+          "observed": true,
+          "openings": [
+            "R2.O2"
+          ]
+        },
+        {
+          "id": "R2.W4",
+          "start": [
+            1.1179,
+            2.8249
+          ],
+          "end": [
+            1.1179,
+            2.1514
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.6735,
+            "ci95": [
+              0.6391,
+              0.7078
+            ],
+            "sigma": 0.01753,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.01653,
+              "plane_b": 0.00566,
+              "scale": 0.00135
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 1.9927,
+            "ci95": [
+              1.8905,
+              2.0949
+            ],
+            "sigma": 0.05216,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R2.W5",
+          "start": [
+            1.1179,
+            2.1514
+          ],
+          "end": [
+            -0.7515,
+            2.1514
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.8694,
+            "ci95": [
+              1.856,
+              1.8827
+            ],
+            "sigma": 0.00682,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.00403,
+              "scale": 0.00374
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 5.5311,
+            "ci95": [
+              5.4815,
+              5.5808
+            ],
+            "sigma": 0.02534,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.8,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R2.W6",
+          "start": [
+            -0.7515,
+            2.1514
+          ],
+          "end": [
+            -0.7515,
+            -1.1823
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.3337,
+            "ci95": [
+              3.3148,
+              3.3526
+            ],
+            "sigma": 0.00964,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00566,
+              "plane_b": 0.00405,
+              "scale": 0.00667
+            }
+          },
+          "height": {
+            "value": 2.9588,
+            "ci95": [
+              2.9427,
+              2.9749
+            ],
+            "sigma": 0.0082,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00048,
+              "plane_bias": 0.00566,
+              "scale": 0.00592
+            }
+          },
+          "area": {
+            "value": 9.8638,
+            "ci95": [
+              9.7864,
+              9.9412
+            ],
+            "sigma": 0.03951,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R2.O1",
+          "kind": "window",
+          "wall_id": "R2.W1",
+          "center": [
+            -0.0679,
+            -1.1823
+          ],
+          "width": {
+            "value": 0.669,
+            "ci95": [
+              0.6595,
+              0.6785
+            ],
+            "sigma": 0.00484,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00313,
+              "plane_b": 0.00344,
+              "scale": 0.00134
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.8496,
+            "ci95": [
+              0.8191,
+              0.88
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R2"
+          ],
+          "evidence": "closure:door, through-ratio 0.60, mirror-score 0.12"
+        },
+        {
+          "id": "R2.O2",
+          "kind": "door",
+          "wall_id": "R2.W3",
+          "center": [
+            1.5997,
+            2.8249
+          ],
+          "width": {
+            "value": 0.9695,
+            "ci95": [
+              0.9601,
+              0.9789
+            ],
+            "sigma": 0.00479,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00307,
+              "plane_b": 0.00313,
+              "scale": 0.00194
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R2",
+            "R1"
+          ],
+          "evidence": "gap, through-ratio 3.98, mirror-score 0.01"
+        }
+      ],
+      "surfaces": [
+        "R2.W1",
+        "R2.W2",
+        "R2.W3",
+        "R2.W4",
+        "R2.W5",
+        "R2.W6",
+        "R2.floor",
+        "R2.ceiling"
+      ],
+      "notes": [
+        "multiple ceiling levels observed (m above floor, plan area m2): 2.36 (0.5), 2.96 (6.7), 3.06 (2.7); reported height is the level covering the largest area"
+      ]
+    },
+    {
+      "id": "R3",
+      "name": "Room 1",
+      "kind": "room",
+      "polygon": [
+        [
+          1.0848,
+          3.7479
+        ],
+        [
+          2.4048,
+          3.7479
+        ],
+        [
+          2.4048,
+          0.447
+        ],
+        [
+          5.2684,
+          0.447
+        ],
+        [
+          5.2684,
+          4.9911
+        ],
+        [
+          3.1954,
+          4.9911
+        ],
+        [
+          3.1954,
+          9.1656
+        ],
+        [
+          1.9457,
+          9.1656
+        ],
+        [
+          1.9457,
+          8.9525
+        ],
+        [
+          0.2566,
+          8.9525
+        ],
+        [
+          0.2566,
+          6.3213
+        ],
+        [
+          0.5154,
+          6.3213
+        ],
+        [
+          0.5154,
+          5.2637
+        ],
+        [
+          2.0322,
+          5.2637
+        ],
+        [
+          2.0322,
+          5.2619
+        ],
+        [
+          1.0848,
+          5.2619
+        ]
+      ],
+      "floor_area": {
+        "value": 26.0609,
+        "ci95": [
+          21.5093,
+          30.6124
+        ],
+        "sigma": 2.32226,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 2.31992,
+          "scale": 0.10424
+        }
+      },
+      "perimeter": {
+        "value": 29.3557,
+        "ci95": [
+          28.0583,
+          30.6532
+        ],
+        "sigma": 0.66199,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.4252,
+        "ci95": [
+          2.4105,
+          2.4399
+        ],
+        "sigma": 0.0075,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00084,
+          "plane_bias": 0.00566,
+          "scale": 0.00485
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": 0.0007,
+      "walls": [
+        {
+          "id": "R3.W1",
+          "start": [
+            1.0848,
+            3.7479
+          ],
+          "end": [
+            2.4048,
+            3.7479
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.32,
+            "ci95": [
+              1.3076,
+              1.3323
+            ],
+            "sigma": 0.00628,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00403,
+              "scale": 0.00264
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 3.2012,
+            "ci95": [
+              3.1656,
+              3.2368
+            ],
+            "sigma": 0.01817,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.333,
+          "observed": false,
+          "openings": [
+            "R3.O1"
+          ]
+        },
+        {
+          "id": "R3.W2",
+          "start": [
+            2.4048,
+            3.7479
+          ],
+          "end": [
+            2.4048,
+            0.447
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.3009,
+            "ci95": [
+              2.81,
+              3.7919
+            ],
+            "sigma": 0.25051,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25039,
+              "plane_b": 0.00404,
+              "scale": 0.0066
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 8.0055,
+            "ci95": [
+              6.8137,
+              9.1972
+            ],
+            "sigma": 0.60804,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W3",
+          "start": [
+            2.4048,
+            0.447
+          ],
+          "end": [
+            5.2684,
+            0.447
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.8636,
+            "ci95": [
+              2.8478,
+              2.8795
+            ],
+            "sigma": 0.00808,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.00402,
+              "scale": 0.00573
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 6.9449,
+            "ci95": [
+              6.8879,
+              7.0019
+            ],
+            "sigma": 0.02906,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R3.O2"
+          ]
+        },
+        {
+          "id": "R3.W4",
+          "start": [
+            5.2684,
+            0.447
+          ],
+          "end": [
+            5.2684,
+            4.9911
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 4.5442,
+            "ci95": [
+              4.5232,
+              4.5652
+            ],
+            "sigma": 0.01073,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00402,
+              "scale": 0.00909
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 11.0206,
+            "ci95": [
+              10.9365,
+              11.1046
+            ],
+            "sigma": 0.04287,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R3.O3"
+          ]
+        },
+        {
+          "id": "R3.W5",
+          "start": [
+            5.2684,
+            4.9911
+          ],
+          "end": [
+            3.1954,
+            4.9911
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.073,
+            "ci95": [
+              2.0579,
+              2.0882
+            ],
+            "sigma": 0.00773,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.00514,
+              "scale": 0.00415
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 5.0275,
+            "ci95": [
+              4.9798,
+              5.0753
+            ],
+            "sigma": 0.02436,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W6",
+          "start": [
+            3.1954,
+            4.9911
+          ],
+          "end": [
+            3.1954,
+            9.1656
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 4.1744,
+            "ci95": [
+              3.684,
+              4.6648
+            ],
+            "sigma": 0.25021,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.25003,
+              "scale": 0.00835
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 10.1238,
+            "ci95": [
+              8.9329,
+              11.3147
+            ],
+            "sigma": 0.60761,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.84,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W7",
+          "start": [
+            3.1954,
+            9.1656
+          ],
+          "end": [
+            1.9457,
+            9.1656
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.2497,
+            "ci95": [
+              1.236,
+              1.2634
+            ],
+            "sigma": 0.007,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00514,
+              "plane_b": 0.00404,
+              "scale": 0.0025
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 3.0307,
+            "ci95": [
+              2.9927,
+              3.0687
+            ],
+            "sigma": 0.01939,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.955,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W8",
+          "start": [
+            1.9457,
+            9.1656
+          ],
+          "end": [
+            1.9457,
+            8.9525
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.213,
+            "ci95": [
+              -0.2771,
+              0.7031
+            ],
+            "sigma": 0.25007,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25003,
+              "plane_b": 0.00401,
+              "scale": 0.00043
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 0.5166,
+            "ci95": [
+              -0.672,
+              1.7053
+            ],
+            "sigma": 0.60646,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W9",
+          "start": [
+            1.9457,
+            8.9525
+          ],
+          "end": [
+            0.2566,
+            8.9525
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.6892,
+            "ci95": [
+              1.199,
+              2.1793
+            ],
+            "sigma": 0.2501,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.25004,
+              "scale": 0.00338
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 4.0965,
+            "ci95": [
+              2.9075,
+              5.2856
+            ],
+            "sigma": 0.60667,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W10",
+          "start": [
+            0.2566,
+            8.9525
+          ],
+          "end": [
+            0.2566,
+            6.3213
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.6312,
+            "ci95": [
+              2.1409,
+              3.1215
+            ],
+            "sigma": 0.25015,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00401,
+              "plane_b": 0.25006,
+              "scale": 0.00526
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 6.3812,
+            "ci95": [
+              5.1916,
+              7.5709
+            ],
+            "sigma": 0.60698,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.9,
+          "observed": false,
+          "openings": [
+            "R3.O4"
+          ]
+        },
+        {
+          "id": "R3.W11",
+          "start": [
+            0.2566,
+            6.3213
+          ],
+          "end": [
+            0.5154,
+            6.3213
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 0.2588,
+            "ci95": [
+              -0.4342,
+              0.9519
+            ],
+            "sigma": 0.35361,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.25004,
+              "scale": 0.00052
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 0.6277,
+            "ci95": [
+              -1.0531,
+              2.3086
+            ],
+            "sigma": 0.85757,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W12",
+          "start": [
+            0.5154,
+            6.3213
+          ],
+          "end": [
+            0.5154,
+            5.2637
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.0577,
+            "ci95": [
+              0.3643,
+              1.751
+            ],
+            "sigma": 0.35377,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25006,
+              "plane_b": 0.25023,
+              "scale": 0.00212
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 2.565,
+            "ci95": [
+              0.8834,
+              4.2467
+            ],
+            "sigma": 0.85799,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": [
+            "R3.O5"
+          ]
+        },
+        {
+          "id": "R3.W13",
+          "start": [
+            0.5154,
+            5.2637
+          ],
+          "end": [
+            2.0322,
+            5.2637
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.5168,
+            "ci95": [
+              0.8237,
+              2.2099
+            ],
+            "sigma": 0.35362,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.25004,
+              "scale": 0.00303
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 3.6786,
+            "ci95": [
+              1.9976,
+              5.3596
+            ],
+            "sigma": 0.85767,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.5,
+          "observed": false,
+          "openings": [
+            "R3.O6"
+          ]
+        },
+        {
+          "id": "R3.W14",
+          "start": [
+            2.0322,
+            5.2637
+          ],
+          "end": [
+            2.0322,
+            5.2619
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 0.0018,
+            "ci95": [
+              -0.4887,
+              0.4923
+            ],
+            "sigma": 0.25026,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25023,
+              "plane_b": 0.00403,
+              "scale": 0.0
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 0.0043,
+            "ci95": [
+              -1.1853,
+              1.1939
+            ],
+            "sigma": 0.60694,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R3.W15",
+          "start": [
+            2.0322,
+            5.2619
+          ],
+          "end": [
+            1.0848,
+            5.2619
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 0.9474,
+            "ci95": [
+              0.4573,
+              1.4376
+            ],
+            "sigma": 0.25008,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25004,
+              "plane_b": 0.00404,
+              "scale": 0.00189
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 2.2976,
+            "ci95": [
+              1.1089,
+              3.4864
+            ],
+            "sigma": 0.60653,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R3.W16",
+          "start": [
+            1.0848,
+            5.2619
+          ],
+          "end": [
+            1.0848,
+            3.7479
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.514,
+            "ci95": [
+              1.0231,
+              2.0048
+            ],
+            "sigma": 0.25044,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.25039,
+              "scale": 0.00303
+            }
+          },
+          "height": {
+            "value": 2.4252,
+            "ci95": [
+              2.4105,
+              2.4399
+            ],
+            "sigma": 0.0075,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00084,
+              "plane_bias": 0.00566,
+              "scale": 0.00485
+            }
+          },
+          "area": {
+            "value": 3.6717,
+            "ci95": [
+              2.4811,
+              4.8624
+            ],
+            "sigma": 0.60747,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R3.O1",
+          "kind": "door",
+          "wall_id": "R3.W1",
+          "center": [
+            1.6638,
+            3.7479
+          ],
+          "width": {
+            "value": 0.8466,
+            "ci95": [
+              0.8373,
+              0.8558
+            ],
+            "sigma": 0.00473,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00314,
+              "plane_b": 0.0031,
+              "scale": 0.00169
+            }
+          },
+          "height": {
+            "value": 2.149,
+            "ci95": [
+              2.1278,
+              2.1701
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": null,
+          "connects": [
+            "R3",
+            "R1"
+          ],
+          "evidence": "gap, through-ratio 5.53, mirror-score 0.42"
+        },
+        {
+          "id": "R3.O2",
+          "kind": "window",
+          "wall_id": "R3.W3",
+          "center": [
+            4.1413,
+            0.447
+          ],
+          "width": {
+            "value": 0.6744,
+            "ci95": [
+              0.6346,
+              0.7143
+            ],
+            "sigma": 0.02033,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.00341,
+              "scale": 0.00135
+            }
+          },
+          "height": {
+            "value": 1.9212,
+            "ci95": [
+              1.9,
+              1.9423
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8669,
+            "ci95": [
+              0.8364,
+              0.8973
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R3"
+          ],
+          "evidence": "closure:door, through-ratio 0.59, mirror-score 0.00"
+        },
+        {
+          "id": "R3.O3",
+          "kind": "door",
+          "wall_id": "R3.W4",
+          "center": [
+            5.2684,
+            4.3311
+          ],
+          "width": {
+            "value": 0.789,
+            "ci95": [
+              0.7797,
+              0.7984
+            ],
+            "sigma": 0.00478,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00314,
+              "plane_b": 0.00324,
+              "scale": 0.00158
+            }
+          },
+          "height": {
+            "value": 2.1505,
+            "ci95": [
+              2.1294,
+              2.1717
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": null,
+          "connects": [
+            "R3",
+            "R5"
+          ],
+          "evidence": "gap, through-ratio 4.88, mirror-score 0.06"
+        },
+        {
+          "id": "R3.O4",
+          "kind": "window",
+          "wall_id": "R3.W10",
+          "center": [
+            0.2566,
+            8.1779
+          ],
+          "width": {
+            "value": 0.8806,
+            "ci95": [
+              0.857,
+              0.9041
+            ],
+            "sigma": 0.01204,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.01152,
+              "plane_b": 0.00302,
+              "scale": 0.00176
+            }
+          },
+          "height": null,
+          "sill_height": {
+            "value": 0.5399,
+            "ci95": [
+              0.5094,
+              0.5703
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R3"
+          ],
+          "evidence": "closure:door, through-ratio 1.09, mirror-score 0.00"
+        },
+        {
+          "id": "R3.O5",
+          "kind": "window",
+          "wall_id": "R3.W12",
+          "center": [
+            0.5154,
+            5.923
+          ],
+          "width": {
+            "value": 0.7181,
+            "ci95": [
+              0.6783,
+              0.7578
+            ],
+            "sigma": 0.02029,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00309,
+              "plane_b": 0.02,
+              "scale": 0.00144
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R3"
+          ],
+          "evidence": "gap, through-ratio 0.31, mirror-score 0.01"
+        },
+        {
+          "id": "R3.O6",
+          "kind": "window",
+          "wall_id": "R3.W13",
+          "center": [
+            1.5227,
+            5.2637
+          ],
+          "width": {
+            "value": 0.8904,
+            "ci95": [
+              0.8698,
+              0.911
+            ],
+            "sigma": 0.01052,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00315,
+              "plane_b": 0.00987,
+              "scale": 0.00178
+            }
+          },
+          "height": {
+            "value": 2.0398,
+            "ci95": [
+              2.0187,
+              2.061
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8532,
+            "ci95": [
+              0.8228,
+              0.8836
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R3"
+          ],
+          "evidence": "closure:door, through-ratio 1.23, mirror-score 0.02"
+        }
+      ],
+      "surfaces": [
+        "R3.W1",
+        "R3.W2",
+        "R3.W3",
+        "R3.W4",
+        "R3.W5",
+        "R3.W6",
+        "R3.W7",
+        "R3.W8",
+        "R3.W9",
+        "R3.W10",
+        "R3.W11",
+        "R3.W12",
+        "R3.W13",
+        "R3.W14",
+        "R3.W15",
+        "R3.W16",
+        "R3.floor",
+        "R3.ceiling"
+      ],
+      "notes": [
+        "multiple ceiling levels observed (m above floor, plan area m2): 1.96 (1.8), 2.37 (4.8), 2.43 (8.5), 3.09 (3.9); reported height is the level covering the largest area",
+        "7 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R4",
+      "name": "Room 2",
+      "kind": "room",
+      "polygon": [
+        [
+          8.8051,
+          -0.0407
+        ],
+        [
+          8.8051,
+          3.1131
+        ],
+        [
+          5.3473,
+          3.1131
+        ],
+        [
+          5.3473,
+          -0.0407
+        ]
+      ],
+      "floor_area": {
+        "value": 10.9054,
+        "ci95": [
+          10.7923,
+          11.0184
+        ],
+        "sigma": 0.05769,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 0.03775,
+          "scale": 0.04362
+        }
+      },
+      "perimeter": {
+        "value": 13.2233,
+        "ci95": [
+          13.1991,
+          13.2475
+        ],
+        "sigma": 0.01236,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 3.0828,
+        "ci95": [
+          3.0663,
+          3.0992
+        ],
+        "sigma": 0.00838,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00042,
+          "plane_bias": 0.00566,
+          "scale": 0.00617
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": -0.0057,
+      "walls": [
+        {
+          "id": "R4.W1",
+          "start": [
+            8.8051,
+            -0.0407
+          ],
+          "end": [
+            8.8051,
+            3.1131
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.1538,
+            "ci95": [
+              3.1371,
+              3.1705
+            ],
+            "sigma": 0.00851,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00404,
+              "scale": 0.00631
+            }
+          },
+          "height": {
+            "value": 3.0828,
+            "ci95": [
+              3.0663,
+              3.0992
+            ],
+            "sigma": 0.00838,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00617
+            }
+          },
+          "area": {
+            "value": 9.7225,
+            "ci95": [
+              9.6495,
+              9.7954
+            ],
+            "sigma": 0.03723,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R4.W2",
+          "start": [
+            8.8051,
+            3.1131
+          ],
+          "end": [
+            5.3473,
+            3.1131
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 3.4578,
+            "ci95": [
+              3.4403,
+              3.4754
+            ],
+            "sigma": 0.00897,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.00404,
+              "scale": 0.00692
+            }
+          },
+          "height": {
+            "value": 3.0828,
+            "ci95": [
+              3.0663,
+              3.0992
+            ],
+            "sigma": 0.00838,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00617
+            }
+          },
+          "area": {
+            "value": 10.6597,
+            "ci95": [
+              10.5812,
+              10.7382
+            ],
+            "sigma": 0.04004,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R4.O1"
+          ]
+        },
+        {
+          "id": "R4.W3",
+          "start": [
+            5.3473,
+            3.1131
+          ],
+          "end": [
+            5.3473,
+            -0.0407
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 3.1538,
+            "ci95": [
+              3.1371,
+              3.1705
+            ],
+            "sigma": 0.00851,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00404,
+              "scale": 0.00631
+            }
+          },
+          "height": {
+            "value": 3.0828,
+            "ci95": [
+              3.0663,
+              3.0992
+            ],
+            "sigma": 0.00838,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00617
+            }
+          },
+          "area": {
+            "value": 9.7225,
+            "ci95": [
+              9.6495,
+              9.7954
+            ],
+            "sigma": 0.03723,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R4.O2"
+          ]
+        },
+        {
+          "id": "R4.W4",
+          "start": [
+            5.3473,
+            -0.0407
+          ],
+          "end": [
+            8.8051,
+            -0.0407
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 3.4578,
+            "ci95": [
+              3.4403,
+              3.4754
+            ],
+            "sigma": 0.00897,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00404,
+              "plane_b": 0.00403,
+              "scale": 0.00692
+            }
+          },
+          "height": {
+            "value": 3.0828,
+            "ci95": [
+              3.0663,
+              3.0992
+            ],
+            "sigma": 0.00838,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00042,
+              "plane_bias": 0.00566,
+              "scale": 0.00617
+            }
+          },
+          "area": {
+            "value": 10.6597,
+            "ci95": [
+              10.5812,
+              10.7382
+            ],
+            "sigma": 0.04004,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        }
+      ],
+      "openings": [
+        {
+          "id": "R4.O1",
+          "kind": "door",
+          "wall_id": "R4.W2",
+          "center": [
+            5.893,
+            3.1131
+          ],
+          "width": {
+            "value": 1.0808,
+            "ci95": [
+              1.0713,
+              1.0902
+            ],
+            "sigma": 0.00481,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00304,
+              "plane_b": 0.00303,
+              "scale": 0.00216
+            }
+          },
+          "height": {
+            "value": 2.5121,
+            "ci95": [
+              2.491,
+              2.5332
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": null,
+          "connects": [
+            "R4",
+            "R5"
+          ],
+          "evidence": "closure:door, through-ratio 4.71, mirror-score 0.11"
+        },
+        {
+          "id": "R4.O2",
+          "kind": "window",
+          "wall_id": "R4.W3",
+          "center": [
+            5.3473,
+            2.7652
+          ],
+          "width": {
+            "value": 3.8473,
+            "ci95": [
+              3.8292,
+              3.8655
+            ],
+            "sigma": 0.00924,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.004,
+              "plane_b": 0.0032,
+              "scale": 0.00769
+            }
+          },
+          "height": {
+            "value": 1.8111,
+            "ci95": [
+              1.79,
+              1.8322
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": {
+            "value": 0.8686,
+            "ci95": [
+              0.8382,
+              0.899
+            ],
+            "sigma": 0.01552,
+            "unit": "m",
+            "method": "top of wall points below gap"
+          },
+          "connects": [
+            "R4",
+            "R3"
+          ],
+          "evidence": "gap, through-ratio 1.36, mirror-score 0.07"
+        }
+      ],
+      "surfaces": [
+        "R4.W1",
+        "R4.W2",
+        "R4.W3",
+        "R4.W4",
+        "R4.floor",
+        "R4.ceiling"
+      ],
+      "notes": []
+    },
+    {
+      "id": "R5",
+      "name": "Room 6",
+      "kind": "room",
+      "polygon": [
+        [
+          6.4353,
+          2.7242
+        ],
+        [
+          6.4353,
+          4.7241
+        ],
+        [
+          5.3517,
+          4.7241
+        ],
+        [
+          5.3517,
+          2.7242
+        ]
+      ],
+      "floor_area": {
+        "value": 2.1672,
+        "ci95": [
+          1.6058,
+          2.7286
+        ],
+        "sigma": 0.28645,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 0.28632,
+          "scale": 0.00867
+        }
+      },
+      "perimeter": {
+        "value": 6.1671,
+        "ci95": [
+          5.6764,
+          6.6579
+        ],
+        "sigma": 0.2504,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.4696,
+        "ci95": [
+          2.4548,
+          2.4843
+        ],
+        "sigma": 0.00752,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00041,
+          "plane_bias": 0.00566,
+          "scale": 0.00494
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": 0.004,
+      "walls": [
+        {
+          "id": "R5.W1",
+          "start": [
+            6.4353,
+            2.7242
+          ],
+          "end": [
+            6.4353,
+            4.7241
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.9999,
+            "ci95": [
+              1.5093,
+              2.4906
+            ],
+            "sigma": 0.25032,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25026,
+              "plane_b": 0.00402,
+              "scale": 0.004
+            }
+          },
+          "height": {
+            "value": 2.4696,
+            "ci95": [
+              2.4548,
+              2.4843
+            ],
+            "sigma": 0.00752,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00041,
+              "plane_bias": 0.00566,
+              "scale": 0.00494
+            }
+          },
+          "area": {
+            "value": 4.939,
+            "ci95": [
+              3.727,
+              6.1509
+            ],
+            "sigma": 0.61836,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.919,
+          "observed": true,
+          "openings": [
+            "R5.O1"
+          ]
+        },
+        {
+          "id": "R5.W2",
+          "start": [
+            6.4353,
+            4.7241
+          ],
+          "end": [
+            5.3517,
+            4.7241
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 1.0836,
+            "ci95": [
+              1.0713,
+              1.096
+            ],
+            "sigma": 0.00629,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00433,
+              "plane_b": 0.00402,
+              "scale": 0.00217
+            }
+          },
+          "height": {
+            "value": 2.4696,
+            "ci95": [
+              2.4548,
+              2.4843
+            ],
+            "sigma": 0.00752,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00041,
+              "plane_bias": 0.00566,
+              "scale": 0.00494
+            }
+          },
+          "area": {
+            "value": 2.6761,
+            "ci95": [
+              2.6417,
+              2.7105
+            ],
+            "sigma": 0.01754,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R5.W3",
+          "start": [
+            5.3517,
+            4.7241
+          ],
+          "end": [
+            5.3517,
+            2.7242
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 1.9999,
+            "ci95": [
+              1.5093,
+              2.4906
+            ],
+            "sigma": 0.25032,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.25026,
+              "scale": 0.004
+            }
+          },
+          "height": {
+            "value": 2.4696,
+            "ci95": [
+              2.4548,
+              2.4843
+            ],
+            "sigma": 0.00752,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00041,
+              "plane_bias": 0.00566,
+              "scale": 0.00494
+            }
+          },
+          "area": {
+            "value": 4.939,
+            "ci95": [
+              3.727,
+              6.1509
+            ],
+            "sigma": 0.61836,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": [
+            "R5.O2"
+          ]
+        },
+        {
+          "id": "R5.W4",
+          "start": [
+            5.3517,
+            2.7242
+          ],
+          "end": [
+            6.4353,
+            2.7242
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 1.0836,
+            "ci95": [
+              1.0713,
+              1.096
+            ],
+            "sigma": 0.00629,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.00433,
+              "scale": 0.00217
+            }
+          },
+          "height": {
+            "value": 2.4696,
+            "ci95": [
+              2.4548,
+              2.4843
+            ],
+            "sigma": 0.00752,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00041,
+              "plane_bias": 0.00566,
+              "scale": 0.00494
+            }
+          },
+          "area": {
+            "value": 2.6761,
+            "ci95": [
+              2.6417,
+              2.7105
+            ],
+            "sigma": 0.01754,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.474,
+          "observed": false,
+          "openings": [
+            "R5.O3"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "R5.O1",
+          "kind": "door",
+          "wall_id": "R5.W1",
+          "center": [
+            6.4353,
+            4.4145
+          ],
+          "width": {
+            "value": 0.5,
+            "ci95": [
+              0.4445,
+              0.5555
+            ],
+            "sigma": 0.0283,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.02,
+              "scale": 0.001
+            }
+          },
+          "height": {
+            "value": 2.1504,
+            "ci95": [
+              2.1293,
+              2.1715
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": null,
+          "connects": [
+            "R5",
+            "R6"
+          ],
+          "evidence": "gap, through-ratio 9.17, mirror-score 0.12"
+        },
+        {
+          "id": "R5.O2",
+          "kind": "door",
+          "wall_id": "R5.W3",
+          "center": [
+            5.3517,
+            4.3648
+          ],
+          "width": {
+            "value": 0.6633,
+            "ci95": [
+              0.6078,
+              0.7188
+            ],
+            "sigma": 0.02832,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.02,
+              "scale": 0.00133
+            }
+          },
+          "height": {
+            "value": 2.1636,
+            "ci95": [
+              2.1425,
+              2.1847
+            ],
+            "sigma": 0.01077,
+            "unit": "m",
+            "method": "lowest header point above gap"
+          },
+          "sill_height": null,
+          "connects": [
+            "R5",
+            "R3"
+          ],
+          "evidence": "gap, through-ratio 7.39, mirror-score 0.05"
+        },
+        {
+          "id": "R5.O3",
+          "kind": "door",
+          "wall_id": "R5.W4",
+          "center": [
+            5.8745,
+            2.7242
+          ],
+          "width": {
+            "value": 0.9782,
+            "ci95": [
+              0.9384,
+              1.0181
+            ],
+            "sigma": 0.02033,
+            "unit": "m",
+            "method": "jamb-to-jamb",
+            "budget": {
+              "plane_a": 0.00307,
+              "plane_b": 0.02,
+              "scale": 0.00196
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R5",
+            "R4"
+          ],
+          "evidence": "closure:door, through-ratio 6.79, mirror-score 0.21"
+        }
+      ],
+      "surfaces": [
+        "R5.W1",
+        "R5.W2",
+        "R5.W3",
+        "R5.W4",
+        "R5.floor",
+        "R5.ceiling"
+      ],
+      "notes": [
+        "1 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma"
+      ]
+    },
+    {
+      "id": "R6",
+      "name": "Room 4",
+      "kind": "room",
+      "polygon": [
+        [
+          6.3077,
+          3.7633
+        ],
+        [
+          8.8518,
+          3.7633
+        ],
+        [
+          8.8518,
+          6.2137
+        ],
+        [
+          6.3077,
+          6.2137
+        ]
+      ],
+      "floor_area": {
+        "value": 6.2341,
+        "ci95": [
+          5.3101,
+          7.1581
+        ],
+        "sigma": 0.47146,
+        "unit": "m2",
+        "method": "polygon area of refined wall planes",
+        "budget": {
+          "edges": 0.4708,
+          "scale": 0.02494
+        }
+      },
+      "perimeter": {
+        "value": 9.989,
+        "ci95": [
+          9.4981,
+          10.4799
+        ],
+        "sigma": 0.25045,
+        "unit": "m",
+        "method": "sum of wall lengths"
+      },
+      "ceiling_height": {
+        "value": 2.3445,
+        "ci95": [
+          2.3301,
+          2.3589
+        ],
+        "sigma": 0.00736,
+        "unit": "m",
+        "method": "ceiling plane - floor plane (robust plane fits)",
+        "budget": {
+          "fit": 0.00043,
+          "plane_bias": 0.00566,
+          "scale": 0.00469
+        }
+      },
+      "ceiling_observed": true,
+      "floor_elevation": -0.0022,
+      "walls": [
+        {
+          "id": "R6.W1",
+          "start": [
+            6.3077,
+            3.7633
+          ],
+          "end": [
+            8.8518,
+            3.7633
+          ],
+          "normal_in": [
+            -0.0,
+            1.0
+          ],
+          "length": {
+            "value": 2.5441,
+            "ci95": [
+              2.5233,
+              2.5649
+            ],
+            "sigma": 0.01063,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00841,
+              "plane_b": 0.00403,
+              "scale": 0.00509
+            }
+          },
+          "height": {
+            "value": 2.3445,
+            "ci95": [
+              2.3301,
+              2.3589
+            ],
+            "sigma": 0.00736,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00043,
+              "plane_bias": 0.00566,
+              "scale": 0.00469
+            }
+          },
+          "area": {
+            "value": 5.9647,
+            "ci95": [
+              5.9036,
+              6.0258
+            ],
+            "sigma": 0.03117,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.625,
+          "observed": false,
+          "openings": []
+        },
+        {
+          "id": "R6.W2",
+          "start": [
+            8.8518,
+            3.7633
+          ],
+          "end": [
+            8.8518,
+            6.2137
+          ],
+          "normal_in": [
+            -1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.4504,
+            "ci95": [
+              1.96,
+              2.9408
+            ],
+            "sigma": 0.25023,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.25015,
+              "plane_b": 0.00402,
+              "scale": 0.0049
+            }
+          },
+          "height": {
+            "value": 2.3445,
+            "ci95": [
+              2.3301,
+              2.3589
+            ],
+            "sigma": 0.00736,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00043,
+              "plane_bias": 0.00566,
+              "scale": 0.00469
+            }
+          },
+          "area": {
+            "value": 5.745,
+            "ci95": [
+              4.5946,
+              6.8954
+            ],
+            "sigma": 0.58693,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R6.W3",
+          "start": [
+            8.8518,
+            6.2137
+          ],
+          "end": [
+            6.3077,
+            6.2137
+          ],
+          "normal_in": [
+            -0.0,
+            -1.0
+          ],
+          "length": {
+            "value": 2.5441,
+            "ci95": [
+              2.5233,
+              2.5649
+            ],
+            "sigma": 0.01063,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00403,
+              "plane_b": 0.00841,
+              "scale": 0.00509
+            }
+          },
+          "height": {
+            "value": 2.3445,
+            "ci95": [
+              2.3301,
+              2.3589
+            ],
+            "sigma": 0.00736,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00043,
+              "plane_bias": 0.00566,
+              "scale": 0.00469
+            }
+          },
+          "area": {
+            "value": 5.9647,
+            "ci95": [
+              5.9036,
+              6.0258
+            ],
+            "sigma": 0.03117,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 1.0,
+          "observed": true,
+          "openings": []
+        },
+        {
+          "id": "R6.W4",
+          "start": [
+            6.3077,
+            6.2137
+          ],
+          "end": [
+            6.3077,
+            3.7633
+          ],
+          "normal_in": [
+            1.0,
+            0.0
+          ],
+          "length": {
+            "value": 2.4504,
+            "ci95": [
+              1.96,
+              2.9408
+            ],
+            "sigma": 0.25023,
+            "unit": "m",
+            "method": "distance between adjacent wall planes",
+            "budget": {
+              "plane_a": 0.00402,
+              "plane_b": 0.25015,
+              "scale": 0.0049
+            }
+          },
+          "height": {
+            "value": 2.3445,
+            "ci95": [
+              2.3301,
+              2.3589
+            ],
+            "sigma": 0.00736,
+            "unit": "m",
+            "method": "ceiling plane - floor plane (robust plane fits)",
+            "budget": {
+              "fit": 0.00043,
+              "plane_bias": 0.00566,
+              "scale": 0.00469
+            }
+          },
+          "area": {
+            "value": 5.745,
+            "ci95": [
+              4.5946,
+              6.8954
+            ],
+            "sigma": 0.58693,
+            "unit": "m2",
+            "method": "length x height (gross, openings not deducted)"
+          },
+          "coverage": 0.63,
+          "observed": true,
+          "openings": [
+            "R6.O1"
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "R6.O1",
+          "kind": "door",
+          "wall_id": "R6.W4",
+          "center": [
+            6.3077,
+            4.4302
+          ],
+          "width": {
+            "value": 0.5314,
+            "ci95": [
+              0.4917,
+              0.5712
+            ],
+            "sigma": 0.02026,
+            "unit": "m",
+            "method": "gap between wall segments",
+            "budget": {
+              "plane_a": 0.02,
+              "plane_b": 0.00307,
+              "scale": 0.00106
+            }
+          },
+          "height": null,
+          "sill_height": null,
+          "connects": [
+            "R6",
+            "R5"
+          ],
+          "evidence": "gap, through-ratio 5.88, mirror-score 0.08"
+        }
+      ],
+      "surfaces": [
+        "R6.W1",
+        "R6.W2",
+        "R6.W3",
+        "R6.W4",
+        "R6.floor",
+        "R6.ceiling"
+      ],
+      "notes": [
+        "1 wall plane(s) not observed above 1.6 m (furniture face or unseen); their position carries a 0.25 m sigma",
+        "mirror on R6.W1 at [8.3, 3.76] (1.08 m wide): not an opening"
+      ]
+    }
+  ],
+  "adjacency": [
+    {
+      "rooms": [
+        "R1",
+        "R2"
+      ],
+      "via": [
+        "R2.O2"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R1",
+        "R3"
+      ],
+      "via": [
+        "R3.O1"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R3",
+        "R5"
+      ],
+      "via": [
+        "R3.O3",
+        "R5.O2"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R4",
+        "R5"
+      ],
+      "via": [
+        "R4.O1",
+        "R5.O3"
+      ],
+      "kind": "door"
+    },
+    {
+      "rooms": [
+        "R3",
+        "R4"
+      ],
+      "via": [
+        "R4.O2"
+      ],
+      "kind": "window"
+    },
+    {
+      "rooms": [
+        "R5",
+        "R6"
+      ],
+      "via": [
+        "R5.O1",
+        "R6.O1"
+      ],
+      "kind": "door"
+    }
+  ],
+  "stitched": {
+    "n_rooms": 6,
+    "footprint_area": {
+      "value": 59.7476,
+      "ci95": [
+        52.2734,
+        67.2217
+      ],
+      "sigma": 3.81341,
+      "unit": "m2",
+      "method": "union of room floor polygons (net internal area)",
+      "budget": {
+        "edges": 3.80591,
+        "scale": 0.23899
+      }
+    },
+    "bbox": {
+      "min": [
+        -0.7792,
+        -1.1823
+      ],
+      "max": [
+        8.8518,
+        9.1656
+      ]
+    }
+  },
+  "drift": {
+    "enabled": false,
+    "method": "none (poses used as captured)",
+    "runtime_s": 21.04
+  },
+  "damage": [],
+  "concealed_damage_flags": [],
+  "scope": [],
+  "warnings": [],
+  "timings_s": {
+    "load": 0.18,
+    "layout": 21.05,
+    "total": 21.23
+  },
+  "environment": {
+    "python": "3.12.14",
+    "machine": "arm64",
+    "generated_at": "2026-10-02T17:04:56"
+  }
+}

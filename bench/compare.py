@@ -46,6 +46,8 @@ def register(doc_a, doc_b):
     """Find (k quarter turns, translation) mapping plan A into plan B's frame."""
     A = list(room_polys(doc_a).values())
     B = list(room_polys(doc_b).values())
+    if not A or not B:
+        return (0, np.zeros(2), 0.0)
     ub = unary_union(B)
     best = None
     for k in range(4):
@@ -65,17 +67,20 @@ def register(doc_a, doc_b):
             ix -= shape[1]
         t = np.array([ix * RES, iy * RES])
         t = _refine(Ak, ub, t)
-        iou = unary_union([translate(p, *t) for p in Ak]).intersection(ub).area / \
-            unary_union([translate(p, *t) for p in Ak]).union(ub).area
+        iou = _overlap(unary_union([translate(p, *t) for p in Ak]), ub)
         if best is None or iou > best[2]:
             best = (k, t, iou)
     return best
 
 
+def _overlap(ua, ub):
+    """Overlap coefficient: intersection / smaller footprint (handles partial captures)."""
+    return ua.intersection(ub).area / max(min(ua.area, ub.area), 1e-9)
+
+
 def _refine(Ak, ub, t, steps=(0.04, 0.02, 0.01, 0.005)):
     def score(tt):
-        ua = unary_union([translate(p, *tt) for p in Ak])
-        return ua.intersection(ub).area / max(ua.union(ub).area, 1e-9)
+        return _overlap(unary_union([translate(p, *tt) for p in Ak]), ub)
     cur, s = np.array(t, float), score(t)
     for st in steps:
         improved = True

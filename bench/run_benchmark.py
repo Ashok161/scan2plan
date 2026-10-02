@@ -33,7 +33,7 @@ CAPTURES = {
     "1a8384c3f6": {"desc": "whole apartment, floor-focused walk (StrayScanner, 115 s)", "multi_room": True},
     "c7d28f72c6": {"desc": "whole apartment incl. ceiling (StrayScanner, 215 s)", "multi_room": True},
 }
-REPEAT_PAIRS = [("1a8384c3f6", "c7d28f72c6")]
+REPEAT_PAIRS = [("1a8384c3f6", "c7d28f72c6"), ("c00a170fe1", "c7d28f72c6"), ("c00a170fe1", "1a8384c3f6")]
 REFERENCE = "c7d28f72c6"           # best-covered LiDAR capture = proxy reference for thinner tiers
 
 
@@ -46,8 +46,11 @@ def run_all(tiers, captures, nodrift=True):
             if tier == "photo":
                 src_t = ROOT / "data" / "photo_tier" / cid
                 if not src_t.exists():
-                    print(f"skip photo tier for {cid}: {src_t} missing (python -m bench.make_photo_tier)")
-                    continue
+                    # build the photo-tier stills from this capture's video, using the LiDAR plan
+                    # (just written above) only to assign frames to rooms; see bench/make_photo_tier.py
+                    from bench.make_photo_tier import main as make_photo_tier
+                    plan = OUT / cid / "lidar" / "plan.json"
+                    make_photo_tier(["--capture", cid] + (["--plan", str(plan)] if plan.exists() else []))
             else:
                 src_t = src
             out = OUT / cid / tier
@@ -192,6 +195,11 @@ def score():
             if P is None or ref is None:
                 continue
             c = compare_plans(P, ref)
+            if not c["footprint_a"] or not P["rooms"]:
+                acc[f"{cid}/{t}"] = {"walls": {"n": 0}, "footprint_err_pct": -100.0, "footprint_in_ci95": False,
+                                     "rooms": [], "rooms_a": 0, "rooms_b": c["rooms_b"], "adjacency_a": 0,
+                                     "openings": opening_stats(c), "note": "tier produced no rooms"}
+                continue
             fa, fb = c["footprint_a"]["value"], c["footprint_b"]["value"]
             sfa = c["footprint_a"]["sigma"]
             acc[f"{cid}/{t}"] = {"walls": wall_stats(c["walls"], rel=tol),

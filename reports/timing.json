@@ -1,5 +1,11 @@
 {
-  "c00a170fe1/lidar": 5.8,
-  "1a8384c3f6/lidar": 19.8,
-  "c7d28f72c6/lidar": 30.2
+  "c00a170fe1/lidar": 73.7,
+  "c00a170fe1/video": 57.0,
+  "c00a170fe1/photo": 22.4,
+  "1a8384c3f6/lidar": 89.4,
+  "1a8384c3f6/video": 475.0,
+  "1a8384c3f6/photo": 22.2,
+  "c7d28f72c6/lidar": 94.5,
+  "c7d28f72c6/video": 101.2,
+  "c7d28f72c6/photo": 17.7
 }

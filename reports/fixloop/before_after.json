@@ -1,0 +1,144 @@
+{
+  "before": {
+    "1a8384c3f6_vs_c7d28f72c6": {
+      "walls": {
+        "n": 17,
+        "median_abs_mm": 234.1,
+        "p90_abs_mm": 1466.0,
+        "median_abs_pct": 11.21,
+        "z_rms": 62.95,
+        "ci95_coverage": 0.176,
+        "pass_rate": 0.118
+      },
+      "openings": {
+        "matched": 5,
+        "within_2cm": 0,
+        "openings_a": 15,
+        "openings_b": 23,
+        "score": 0.0,
+        "median_abs_mm": 159.8
+      },
+      "rooms_matched": 4,
+      "rooms": [
+        5,
+        6
+      ]
+    },
+    "c00a170fe1_vs_c7d28f72c6": {
+      "walls": {
+        "n": 5,
+        "median_abs_mm": 294.9,
+        "p90_abs_mm": 725.8,
+        "median_abs_pct": 8.52,
+        "z_rms": 30.94,
+        "ci95_coverage": 0.0,
+        "pass_rate": 0.0
+      },
+      "openings": {
+        "matched": 1,
+        "within_2cm": 1,
+        "openings_a": 6,
+        "openings_b": 23,
+        "score": 0.043,
+        "median_abs_mm": 19.7
+      },
+      "rooms_matched": 2,
+      "rooms": [
+        3,
+        6
+      ]
+    },
+    "c00a170fe1_vs_1a8384c3f6": {
+      "walls": {
+        "n": 0
+      },
+      "openings": {
+        "matched": 0,
+        "within_2cm": 0,
+        "openings_a": 6,
+        "openings_b": 15,
+        "score": 0.0,
+        "median_abs_mm": null
+      },
+      "rooms_matched": 0,
+      "rooms": [
+        3,
+        5
+      ]
+    }
+  },
+  "after": {
+    "1a8384c3f6_vs_c7d28f72c6": {
+      "walls": {
+        "n": 13,
+        "median_abs_mm": 730.8,
+        "p90_abs_mm": 1748.3,
+        "median_abs_pct": 39.93,
+        "z_rms": 3.69,
+        "ci95_coverage": 0.308,
+        "pass_rate": 0.0
+      },
+      "openings": {
+        "matched": 2,
+        "within_2cm": 0,
+        "openings_a": 9,
+        "openings_b": 13,
+        "score": 0.0,
+        "median_abs_mm": 560.5
+      },
+      "rooms_matched": 3,
+      "rooms": [
+        4,
+        4
+      ]
+    },
+    "c00a170fe1_vs_c7d28f72c6": {
+      "walls": {
+        "n": 3,
+        "median_abs_mm": 299.0,
+        "p90_abs_mm": 632.0,
+        "median_abs_pct": 8.64,
+        "z_rms": 1.79,
+        "ci95_coverage": 0.667,
+        "pass_rate": 0.0
+      },
+      "openings": {
+        "matched": 1,
+        "within_2cm": 1,
+        "openings_a": 3,
+        "openings_b": 13,
+        "score": 0.077,
+        "median_abs_mm": 17.4
+      },
+      "rooms_matched": 1,
+      "rooms": [
+        3,
+        4
+      ]
+    },
+    "c00a170fe1_vs_1a8384c3f6": {
+      "walls": {
+        "n": 4,
+        "median_abs_mm": 277.8,
+        "p90_abs_mm": 887.4,
+        "median_abs_pct": 10.32,
+        "z_rms": 1.35,
+        "ci95_coverage": 0.75,
+        "pass_rate": 0.0
+      },
+      "openings": {
+        "matched": 1,
+        "within_2cm": 0,
+        "openings_a": 3,
+        "openings_b": 9,
+        "score": 0.0,
+        "median_abs_mm": 563.1
+      },
+      "rooms_matched": 1,
+      "rooms": [
+        3,
+        4
+      ]
+    }
+  }
+}
