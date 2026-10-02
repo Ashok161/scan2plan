@@ -27,7 +27,6 @@ from scan2plan.measure import Measurement
 from scan2plan.plan_types import Opening, Plan, Room, Wall
 from scan2plan.stitch import stitch_rooms
 
-RNG = np.random.default_rng(42)
 
 
 def _rot2(yaw_deg):
@@ -88,13 +87,18 @@ def _rect_room(rid: str, x0: float, z0: float, x1: float, z1: float, doors=None,
 
 
 def _ground_truth_rooms():
+    # Door widths are deliberately distinct (0.9 / 0.8 / 0.6 m) so the
+    # width-only door matcher has a unique best candidate everywhere; with
+    # identical widths on every door, a wrong-but-equally-scored pairing
+    # (e.g. room B docking straight onto room A's door) is a real, expected
+    # ambiguity of width-only matching, not a bug -- real doors vary in size.
     room_a = _rect_room("roomA", 0.0, 0.0, 4.0, 3.0, doors=[{"side": "E", "t0": 1.0, "t1": 1.9}])
     corridor = _rect_room("corridor", 4.15, 0.0, 5.35, 6.0,
                           doors=[{"side": "W", "t0": 1.0, "t1": 1.9},
-                                 {"side": "E", "t0": 1.0, "t1": 1.9},
-                                 {"side": "N", "t0": 0.35, "t1": 0.85}])
-    room_b = _rect_room("roomB", 5.5, 0.0, 9.5, 3.0, doors=[{"side": "W", "t0": 1.0, "t1": 1.9}])
-    room_c = _rect_room("roomC", 4.0, 6.15, 7.2, 9.15, doors=[{"side": "S", "t0": 0.5, "t1": 1.0}])
+                                 {"side": "E", "t0": 1.05, "t1": 1.85},
+                                 {"side": "N", "t0": 0.3, "t1": 0.9}])
+    room_b = _rect_room("roomB", 5.5, 0.0, 9.5, 3.0, doors=[{"side": "W", "t0": 1.05, "t1": 1.85}])
+    room_c = _rect_room("roomC", 4.0, 6.15, 7.2, 9.15, doors=[{"side": "S", "t0": 0.45, "t1": 1.05}])
     return {"roomA": room_a, "corridor": corridor, "roomB": room_b, "roomC": room_c}
 
 
@@ -139,8 +143,11 @@ def _adjacency_name_pairs(plan: Plan):
 EXPECTED_PAIRS = {("corridor", "roomA"), ("corridor", "roomB"), ("corridor", "roomC")}
 
 
-def _random_scrambles(names):
-    return {n: (int(RNG.choice([0, 90, 180, 270])), RNG.uniform(-5, 5, size=2)) for n in names}
+def _random_scrambles(names, seed: int):
+    """Independent per-call RNG: each test gets its own fixed, reproducible
+    scramble regardless of test execution order (no shared mutable state)."""
+    rng = np.random.default_rng(seed)
+    return {n: (int(rng.choice([0, 90, 180, 270])), rng.uniform(-5, 5, size=2)) for n in names}
 
 
 # --------------------------------------------------------------------- tests
@@ -148,7 +155,7 @@ def _random_scrambles(names):
 
 def test_door_matching_fallback_recovers_layout_with_no_links():
     rooms = _ground_truth_rooms()
-    scrambles = _random_scrambles(rooms)
+    scrambles = _random_scrambles(rooms, seed=1)
     plans, names = _scrambled_plans(rooms, scrambles)
 
     merged = stitch_rooms(plans, links=[], names=names, seed=0)
@@ -168,7 +175,7 @@ def test_link_pose_graph_recovers_layout_without_door_matching():
     # strip every opening: the door matcher physically cannot do anything here
     for name, room in rooms.items():
         rooms[name] = Room(**{**room.__dict__, "openings": []})
-    scrambles = _random_scrambles(rooms)
+    scrambles = _random_scrambles(rooms, seed=2)
     plans, names = _scrambled_plans(rooms, scrambles)
 
     def T4(name):
@@ -201,7 +208,7 @@ def test_default_names_use_room_name_not_id():
     rooms = _ground_truth_rooms()
     for name, room in rooms.items():
         rooms[name] = Room(**{**room.__dict__, "id": "R1", "name": name})
-    scrambles = _random_scrambles(rooms)
+    scrambles = _random_scrambles(rooms, seed=3)
     plans, _names = _scrambled_plans(rooms, scrambles)
     assert len({p.rooms[0].id for p in plans}) == 1   # every id collides, as in real build_plan output
 
@@ -221,7 +228,7 @@ def test_unreachable_room_is_placed_without_overlap_and_warns():
     rooms = _ground_truth_rooms()
     # drop roomC's door so it can neither link nor door-match to anything
     rooms["roomC"] = Room(**{**rooms["roomC"].__dict__, "openings": []})
-    scrambles = _random_scrambles(rooms)
+    scrambles = _random_scrambles(rooms, seed=4)
     plans, names = _scrambled_plans(rooms, scrambles)
     links = []
     for a, b in [("roomA", "corridor"), ("roomB", "corridor")]:

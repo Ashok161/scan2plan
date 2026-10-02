@@ -120,8 +120,132 @@ def _transform_room(room: Room, yaw_deg: float, t: np.ndarray, new_id: str) -> R
     return replace(room, id=new_id, polygon=poly, walls=walls, openings=openings)
 
 
+def _safe_poly(coords: np.ndarray) -> Polygon:
+    """Polygon from raw (x,z) coords, repaired if self-intersecting.
+
+    `build_plan` on very sparse photo-tier input can hand back a
+    near-degenerate rectilinear polygon (too few wall-line observations to
+    cleanly close); `buffer(0)` is the standard GEOS trick to resolve minor
+    self-intersections rather than letting `unary_union`/`intersection`
+    crash the whole stitch over one bad room.
+    """
+    p = Polygon(coords)
+    if not p.is_valid:
+        p = p.buffer(0)
+    return p
+
+
 def _room_polygon2d(room: Room) -> Polygon:
-    return Polygon(room.polygon)
+    return _safe_poly(room.polygon)
+
+
+def _scale_room_about(room: Room, s: float, origin: np.ndarray) -> Room:
+    """Isotropic scale of one already-placed room about `origin`.
+
+    Used only by `_resolve_residual_overlaps`: a link (especially
+    "shared_photo", which has no way to measure relative scale from a
+    single pose correspondence) assumes two rooms' independently-estimated
+    monocular depth scales agree. When they do not, correctly-placed rooms
+    can still overlap; shrinking the less-confident one is a last-resort
+    fix for the hard no-overlap gate, not a substitute for a real shared
+    scale reference.
+    """
+    def sc(p):
+        return origin + s * (p - origin)
+
+    walls = [replace(w, start=sc(w.start), end=sc(w.end),
+                     length=replace(w.length, value=w.length.value * s, sigma=w.length.sigma * s))
+            for w in room.walls]
+    openings = [replace(o, center=sc(o.center),
+                        width=replace(o.width, value=o.width.value * s, sigma=o.width.sigma * s))
+               for o in room.openings]
+    area = replace(room.area, value=room.area.value * s * s, sigma=room.area.sigma * s * s)
+    perim = replace(room.perimeter, value=room.perimeter.value * s, sigma=room.perimeter.sigma * s)
+    return replace(room, polygon=sc(room.polygon), walls=walls, openings=openings, area=area, perimeter=perim)
+
+
+def _resolve_residual_overlaps(merged_rooms: list[Room], min_scale: float = 0.4,
+                               max_iters: int = 8):
+    """Hard-constraint cleanup: shrink the less-confident room of any
+    remaining overlapping pair (binary search on scale) until clear, or
+    until `min_scale` is hit. Confidence proxy: relative area sigma (an
+    independently mis-scaled monocular reconstruction tends to carry a
+    larger relative sigma already, since its own wall-plane fits were
+    thinner evidence to begin with)."""
+    warnings: list[str] = []
+    for _ in range(max_iters):
+        polys = {r.id: _room_polygon2d(r) for r in merged_rooms}
+        ids = list(polys)
+        worst = None
+        for a in range(len(ids)):
+            for b in range(a + 1, len(ids)):
+                inter = polys[ids[a]].buffer(-1e-6).intersection(polys[ids[b]].buffer(-1e-6))
+                if inter.area > 1e-6 and (worst is None or inter.area > worst[2]):
+                    worst = (ids[a], ids[b], inter.area)
+        if worst is None:
+            break
+        ra_id, rb_id, _ = worst
+        by_id = {r.id: i for i, r in enumerate(merged_rooms)}
+        ra, rb = merged_rooms[by_id[ra_id]], merged_rooms[by_id[rb_id]]
+        rel_sigma_a = ra.area.sigma / max(ra.area.value, 1e-6)
+        rel_sigma_b = rb.area.sigma / max(rb.area.value, 1e-6)
+        shrink, other = (ra, rb) if rel_sigma_a >= rel_sigma_b else (rb, ra)
+        other_poly = _room_polygon2d(other)
+        other_centroid = np.array(other_poly.centroid.coords[0])
+        centroid = np.array(_room_polygon2d(shrink).centroid.coords[0])
+        lo, hi = min_scale, 1.0
+        for _ in range(20):
+            mid = (lo + hi) / 2
+            trial_poly = _room_polygon2d(_scale_room_about(shrink, mid, centroid))
+            if trial_poly.buffer(-1e-6).intersects(other_poly.buffer(-1e-6)):
+                lo = mid
+            else:
+                hi = mid
+        if hi < 0.999:
+            merged_rooms[by_id[shrink.id]] = _scale_room_about(shrink, hi, centroid)
+            warnings.append(f"applied an isotropic {hi:.2f}x scale correction to room '{shrink.id}' to "
+                            f"resolve a hard overlap with '{other.id}': the two rooms' independently "
+                            f"estimated monocular depth scales disagreed (shared_photo/feature_match "
+                            f"links fix relative pose, not relative scale)")
+            continue
+        # Scale alone (about the room's own centroid, which can itself sit
+        # deep inside the other room when the link's *pose* -- not just its
+        # scale -- was wrong) did not clear it even at min_scale: also push
+        # the room away from the other room's centroid, at min_scale, by a
+        # growing distance. This is a blunt last resort for a bad link, not
+        # a measurement; it is always logged.
+        sep = centroid - other_centroid
+        direction = sep / np.linalg.norm(sep) if np.linalg.norm(sep) > 1e-6 else np.array([1.0, 0.0])
+        span = max(other_poly.bounds[2] - other_poly.bounds[0], other_poly.bounds[3] - other_poly.bounds[1],
+                  1.0)
+        pushed = None
+        for d in np.linspace(0.0, 4.0 * span, 80):
+            trial = _scale_room_about(shrink, min_scale, centroid)
+            trial = replace(trial, polygon=trial.polygon + direction * d,
+                            walls=[replace(w, start=w.start + direction * d, end=w.end + direction * d)
+                                  for w in trial.walls],
+                            openings=[replace(o, center=o.center + direction * d) for o in trial.openings])
+            if not _room_polygon2d(trial).buffer(-1e-6).intersects(other_poly.buffer(-1e-6)):
+                pushed = (trial, d)
+                break
+        if pushed is None:
+            break   # exhausted the search; leave it, reported as an unresolved overlap below
+        trial, d = pushed
+        merged_rooms[by_id[shrink.id]] = trial
+        warnings.append(f"room '{shrink.id}' needed both a {min_scale:.2f}x scale correction and a "
+                        f"{d:.2f} m push away from '{other.id}' to clear a hard overlap: the "
+                        f"shared-photo/feature-match link between them was placement-inconsistent, "
+                        f"not just scale-inconsistent -- treat this adjacency's position as unreliable")
+    # final check: report anything that still could not be resolved
+    polys = {r.id: _room_polygon2d(r) for r in merged_rooms}
+    ids = list(polys)
+    for a in range(len(ids)):
+        for b in range(a + 1, len(ids)):
+            inter = polys[ids[a]].buffer(-1e-6).intersection(polys[ids[b]].buffer(-1e-6))
+            if inter.area > 1e-6:
+                warnings.append(f"overlap detected between {ids[a]} and {ids[b]} "
+                                f"(area {inter.area:.4f} m2) after placement and scale correction")
+    return merged_rooms, warnings
 
 
 # --------------------------------------------------------------- link graph
@@ -245,14 +369,14 @@ def _try_attach_component(comp: list[int], base_yaw: dict, base_t: dict,
             c_center_r = Rt @ c_center
             c_normal = _rot2(by) @ c_room.walls[_wall_index(c_room, c_open)].normal_in
             c_normal_r = Rt @ c_normal
-            for (s_room_poly, s_open, s_normal, s_room_id) in placed_openings:
+            for (s_room_poly, s_open, s_center, s_normal, s_room_id) in placed_openings:
                 if abs(s_open.width.value - c_open.width.value) > width_tol:
                     continue
                 if float(np.dot(s_normal, c_normal_r)) > -0.6:
                     continue   # must face each other once rotated
                 # the candidate room sits on the far side of the placed room's
                 # wall from that wall's interior, i.e. *against* s_normal
-                target = s_open.center - s_normal * wall_thickness
+                target = s_center - s_normal * wall_thickness
                 extra_t = target - c_center_r
                 # build trial polygons for the whole component
                 polys = []
@@ -274,7 +398,7 @@ def _try_attach_component(comp: list[int], base_yaw: dict, base_t: dict,
                         continue
                 score = abs(s_open.width.value - c_open.width.value)
                 if best is None or score < best[0]:
-                    best = (score, extra_yaw, extra_t, s_room_id, c_room.id)
+                    best = (score, extra_yaw, extra_t, s_room_id, f"p{gi}_{c_room.id}")
     return best
 
 
@@ -348,11 +472,12 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
             gt = placed_global_t[gi]
             for room in room_plans[gi].rooms:
                 xz = _apply_se2(room.polygon, gyaw, gt)
-                polys.append(Polygon(xz))
+                poly = _safe_poly(xz)
+                polys.append(poly)
                 for o in _door_openings(room):
                     center = _rot2(gyaw) @ o.center + gt
                     normal = _rot2(gyaw) @ room.walls[_wall_index(room, o)].normal_in
-                    openings.append((Polygon(xz), o, normal, f"p{gi}.{room.id}"))
+                    openings.append((poly, o, center, normal, f"p{gi}_{room.id}"))
         union = unary_union(polys) if polys else None
         return union, openings
 
@@ -383,38 +508,41 @@ def stitch_rooms(room_plans: list[Plan], links: list[dict], names: list[str] | N
         progressed = True
 
     if pending:
-        union, _ = placed_union_and_openings()
-        minx, miny, maxx, maxy = (union.bounds if union is not None else (0, 0, 0, 0))
-        cursor = maxx + room_gap
         for comp in pending:
+            union, _ = placed_union_and_openings()
+            # shift comp (kept at its own base/internal placement, no rotation
+            # or door evidence) so its leftmost extent clears everything
+            # placed so far by room_gap -- an absolute coordinate target, not
+            # a fixed delta, so it is correct regardless of where the
+            # component's own (possibly far-from-origin) base placement sits
+            base_polys = [_safe_poly(_apply_se2(room.polygon, base_yaw[gi], base_t[gi]))
+                         for gi in comp for room in room_plans[gi].rooms]
+            comp_minx = min(p.bounds[0] for p in base_polys)
+            target_minx = (union.bounds[2] + room_gap) if union is not None else 0.0
+            shift_x = target_minx - comp_minx
             for gi in comp:
                 placed_global_yaw[gi] = base_yaw[gi]
-                placed_global_t[gi] = base_t[gi] + np.array([cursor, 0.0])
+                placed_global_t[gi] = base_t[gi] + np.array([shift_x, 0.0])
                 placed_sigma[gi] = 0.75   # arbitrary placement: large, explicit uncertainty
             names_here = [room_plans[gi].rooms[0].name for gi in comp if room_plans[gi].rooms]
             warnings.append(f"room(s) {names_here} had no link and no matching door opening to the "
                             f"rest of the property; placed at an arbitrary offset with no claimed adjacency")
             log(f"stitch: WARNING room(s) {names_here} placed arbitrarily (no link, no door match)")
-            u, _ = placed_union_and_openings()
-            cursor = u.bounds[2] + room_gap if u is not None else cursor + room_gap
 
     merged_rooms: list[Room] = []
     id_map: dict[tuple[int, str], str] = {}
     for gi in range(n):
         gyaw, gt = placed_global_yaw[gi], placed_global_t[gi]
         for room in room_plans[gi].rooms:
-            new_id = f"p{gi}.{room.id}"
+            new_id = f"p{gi}_{room.id}"
             id_map[(gi, room.id)] = new_id
             merged_rooms.append(_transform_room(room, gyaw, gt, new_id))
 
+    merged_rooms, overlap_warnings = _resolve_residual_overlaps(merged_rooms)
+    warnings.extend(overlap_warnings)
+    if overlap_warnings:
+        log(f"stitch: {len(overlap_warnings)} overlap-resolution event(s); see warnings")
     polys = {r.id: _room_polygon2d(r) for r in merged_rooms}
-    ids = list(polys)
-    for a in range(len(ids)):
-        for b in range(a + 1, len(ids)):
-            inter = polys[ids[a]].buffer(-1e-6).intersection(polys[ids[b]].buffer(-1e-6))
-            if inter.area > 1e-6:
-                warnings.append(f"overlap detected between {ids[a]} and {ids[b]} "
-                                f"(area {inter.area:.4f} m2) after placement")
 
     adjacency: list[dict] = []
     seen_adj: set[tuple[str, str]] = set()

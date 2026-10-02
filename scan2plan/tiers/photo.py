@@ -8,7 +8,11 @@ to be invented from pixels. The pipeline per room folder is:
      FocalLengthIn35mmFilm when present, else from the depth model's own
      focal estimate, else a fixed-FOV heuristic (see `_photo_intrinsics`).
   2. Run a monocular *metric* depth model on every photo
-     (`scan2plan.tiers.photo_depth.predict_depth`, disk-cached).
+     (`scan2plan.tiers.mono_depth.predict_depth`, the wrapper shared with the
+     video tier, disk-cached). `photo_depth.py` was this module's private,
+     short-lived copy of that wrapper while mono_depth.py did not exist yet;
+     it is now unused here and kept only as a documented fallback (see its
+     own docstring) in case mono_depth.py is ever unavailable.
   3. Match SIFT features between every pair of photos in the room, lift the
      matched 2D points to camera-frame 3D points with each photo's own depth
      map, and fit a similarity transform (rotation + translation + a
@@ -55,7 +59,36 @@ from PIL import Image, ImageOps
 
 from ..frames import Frame, FrameSet, PHOTO_ERRORS, backproject, to_world
 from ..manhattan import dominant_yaw, gravity_from_normals, rotation_aligning, yaw_rotation
-from . import photo_depth
+try:
+    from . import mono_depth as _depth_backend
+    # Model choice: bench/eval_depth_scale.py measured apple/DepthPro-hf given
+    # the photo's own EXIF-derived focal length (see `_load_photo` below) as
+    # having by far the smallest *per-image metric-depth scale bias* against
+    # LiDAR of every model compared (median +9-18% vs +27-44% for the
+    # Depth-Anything variants; see reports/depth_scale.json). It does NOT win
+    # on the metric that actually matters for this tier, though: re-running
+    # the full photo-tier pipeline (bench/eval_photo_tier.py) with DepthPro as
+    # the dense-depth model made footprint error WORSE on all 3 bench
+    # captures (-36/-32/-63 % -> -78/-54/+45 %), because this tier's
+    # registration step (_register_pair) backprojects individual SIFT
+    # keypoints with per-pixel depth and fits a 3D-3D RANSAC similarity
+    # transform: that step is sensitive to *local* depth noise (AbsRel, which
+    # DepthPro does not clearly improve: 21-45% vs 30-48% for Depth-Anything),
+    # not to the *global median* scale bias the step-1 table measures. A
+    # locally-noisier-but-less-biased depth map can and did produce far worse
+    # keypoint-level 3D points. Depth-Anything-V2-Metric-Indoor-Small (the
+    # original default, Apache-2.0) is therefore kept as DEFAULT_MODEL_ID;
+    # DepthPro and Depth-Anything-Base remain selectable via
+    # `load_photo_property(..., model_id=...)` for anyone who wants to
+    # reproduce or build on this comparison (see also LEGACY_MODEL_ID, kept as
+    # an alias of the same default for API clarity/back-compat).
+    DEFAULT_MODEL_ID = _depth_backend.DEPTH_ANYTHING_SMALL
+    LEGACY_MODEL_ID = _depth_backend.DEPTH_ANYTHING_SMALL
+except ImportError:
+    from . import photo_depth as _depth_backend
+    DEFAULT_MODEL_ID = _depth_backend.DEFAULT_MODEL_ID
+    LEGACY_MODEL_ID = _depth_backend.DEFAULT_MODEL_ID
+DEPTH_MODEL_ID = DEFAULT_MODEL_ID   # kept for backward compatibility
 
 try:
     import pillow_heif
@@ -64,6 +97,10 @@ except Exception:
     pass
 
 _IMG_EXTS = {".jpg", ".jpeg", ".png", ".heic", ".heif"}
+# synthetic "inliers" weight for shared_photo links (see _cross_room_links):
+# large enough to always win a max-spanning-forest tie against any
+# realistic cross-folder feature_match inlier count.
+SHARED_PHOTO_WEIGHT = 1000
 
 # ---------------------------------------------------------------- data model
 
@@ -96,6 +133,7 @@ class _RoomPhotoRef:
     path: Path
     hash: str
     pose: np.ndarray | None    # 4x4, this room's local gravity-aligned frame; None if unregistered
+    scale: float | None        # this room's resolved depth-scale factor for this photo (post median-recentre)
     K: np.ndarray
     depth_raw: np.ndarray
     kp: list
@@ -173,12 +211,22 @@ def _get_sift():
     return _sift
 
 
-def _load_photo(path: Path, cache_dir, device, progress=None) -> _Photo:
+def _load_photo(path: Path, cache_dir, device, model_id: str = DEFAULT_MODEL_ID, progress=None) -> _Photo:
     rgb, K, src = _photo_intrinsics(path)
     file_hash = hashlib.sha1(path.read_bytes()).hexdigest()
-    cache_key = f"{file_hash[:24]}:{rgb.shape[1]}x{rgb.shape[0]}"
-    depth_raw, model_focal = photo_depth.predict_depth(rgb, cache_key=cache_key, cache_dir=cache_dir,
-                                                        device=device)
+    cache_key = f"{file_hash[:24]}_{rgb.shape[1]}x{rgb.shape[0]}"
+    # When the photo's own focal length is known (EXIF, not the FOV
+    # heuristic), hand it to the depth model as `focal_hint_px`: for models
+    # that predict their own focal (DepthPro), this makes the metric depth
+    # output exactly what the model would have produced given the TRUE
+    # focal length instead of its own FOV-head estimate (see
+    # mono_depth.predict_depth's docstring for why the rescale is exact, not
+    # an approximation). Models that don't predict a focal (Depth-Anything)
+    # silently ignore the hint.
+    focal_hint = None if src == "fov_heuristic_70deg" else float(K[0, 0])
+    depth_raw, model_focal = _depth_backend.predict_depth(rgb, model_id, cache_key,
+                                                           cache_dir=cache_dir, device=device,
+                                                           focal_hint_px=focal_hint)
     if src == "fov_heuristic_70deg" and model_focal:
         K = np.array([[model_focal, 0.0, rgb.shape[1] / 2.0],
                       [0.0, model_focal, rgb.shape[0] / 2.0], [0.0, 0.0, 1.0]])
@@ -265,9 +313,34 @@ def _backproject_uv(uv: np.ndarray, depth: np.ndarray, K: np.ndarray) -> np.ndar
     return pts
 
 
-def _register_pair(a: _Photo, b: _Photo, ratio: float = 0.75, ransac_thresh: float = 0.12,
-                   iters: int = 2000, min_inliers: int = 12):
-    """Register b onto a: fit A ~= s R B + t. Returns dict(R,s,t,inliers,n,rmse) or None."""
+def _register_pair(a: _Photo, b: _Photo, ratio: float = 0.75, ransac_thresh: float = 0.15,
+                   iters: int = 2000, min_inliers: int = 8):
+    """Register b onto a: fit A ~= s R B + t. Returns dict(R,s,t,inliers,n,rmse) or None.
+
+    Thresholds measured empirically on the bench photo-tier captures: with
+    only 5-8 photos sweeping a whole room, non-adjacent viewpoints
+    legitimately share only 10-30 raw matches (not the hundreds a video
+    tier gets), and monocular depth error on far points easily exceeds
+    10 cm. min_inliers=8 / thresh=0.15 m is the loosest setting that still
+    rejects pure-noise pairs (checked against zero-overlap pairs scoring
+    <=6 inliers) while keeping the handful of real but weak overlaps that
+    are often the only edge connecting two halves of a room's photo set.
+
+    A kornia LoFTR (`pretrained="indoor_new"`) dense-matching fallback for
+    SIFT-starved pairs was tried here and measured end-to-end (see
+    bench/eval_photo_tier.py and the task report): it reliably raised the
+    registration rate (57% -> 62-71% of bench photos, depending on
+    threshold) but did not reliably improve footprint/wall-length accuracy
+    against LiDAR -- across every inlier/confidence threshold tried, it
+    improved footprint error on one bench capture (-35.9% -> -8.6% best
+    case) while making it worse, sometimes much worse (up to -81.6%), on
+    the other two, because dense matches on repeated/low-texture surfaces
+    (tile floors, blank walls) can be RANSAC-self-consistent yet
+    geometrically wrong -- monocular depth is itself noisiest exactly
+    there, and the max-spanning-forest pose chain is sensitive to any
+    single changed edge. Reverted; SIFT-only is kept as measurably more
+    stable on the 3-capture bench.
+    """
     if a.desc is None or b.desc is None or len(a.kp) < 4 or len(b.kp) < 4:
         return None
     bf = cv2.BFMatcher(cv2.NORM_L2)
@@ -389,6 +462,12 @@ def _chain_poses(comp: list[int], tree_edges: list[dict], root: int):
 # --------------------------------------------------------------- room assembly
 
 
+def _scale_translation(T: np.ndarray, k: float) -> np.ndarray:
+    T2 = T.copy()
+    T2[:3, 3] = T[:3, 3] * k
+    return T2
+
+
 def _make_depth_loader(depth_raw: np.ndarray, scale: float):
     d = (depth_raw * scale).astype(np.float32)
 
@@ -405,7 +484,7 @@ def _make_rgb_loader(rgb: np.ndarray):
 
 
 def _build_room_frameset(name: str, photos: list[_Photo], comp: list[int], tree_edges: list[dict],
-                         main: bool):
+                         main: bool, model_id: str = DEFAULT_MODEL_ID):
     comp = sorted(comp)
     warnings: list[str] = []
     deg = {g: 0 for g in comp}
@@ -416,7 +495,21 @@ def _build_room_frameset(name: str, photos: list[_Photo], comp: list[int], tree_
     root = max(comp, key=lambda g: (deg[g], -g))
     pose_map, scale_map = _chain_poses(comp, tree_edges, root)
 
-    pts_list, nrm_list = [], []
+    # Robust per-room scale: anchoring the whole room to one arbitrarily-
+    # chosen root photo's own (possibly biased) depth estimate is fragile
+    # with only 2-8 photos. Recentre on the *median* resolved scale across
+    # every registered photo instead -- same relative calibration between
+    # photos (unaffected), different, more robust choice of which value
+    # counts as "1.0". Camera translations must be rescaled by the same
+    # factor so poses stay consistent with the rescaled depth.
+    if len(scale_map) > 1:
+        med = float(np.median(list(scale_map.values())))
+        if med > 1e-9:
+            k = 1.0 / med
+            scale_map = {g: s * k for g, s in scale_map.items()}
+            pose_map = {g: _scale_translation(T, k) for g, T in pose_map.items()}
+
+    pts_list, nrm_list, rel_list = [], [], []
     for g in comp:
         ph = photos[g]
         depth = ph.depth_raw * scale_map[g]
@@ -426,6 +519,7 @@ def _build_room_frameset(name: str, photos: list[_Photo], comp: list[int], tree_
             pw, nw = to_world(pose_map[g], pts, nrm)
             pts_list.append(pw)
             nrm_list.append(nw)
+            rel_list.append(pw - pose_map[g][:3, 3])   # points relative to that photo's own camera
 
     R_align = np.eye(3)
     if nrm_list:
@@ -433,6 +527,16 @@ def _build_room_frameset(name: str, photos: list[_Photo], comp: list[int], tree_
         horizontal_evidence = int((np.abs(all_n @ np.array([0.0, 1.0, 0.0])) > 0.85).sum())
         if horizontal_evidence >= 50:
             g_up = gravity_from_normals(all_n)
+            # gravity_from_normals only recovers the vertical AXIS, not which
+            # end is "up": disambiguate the sign the same way the video tier
+            # does (manhattan.gravity_from_normals's docstring), using the
+            # prior that a room holds more floor+lower-wall volume below eye
+            # height than ceiling volume above it, so most backprojected
+            # points should sit *below* their own camera along the true up
+            # axis (median relative-point projection on g_up < 0).
+            all_rel = np.concatenate(rel_list)
+            if np.median(all_rel @ g_up) > 0:
+                g_up = -g_up
             R_align = rotation_aligning(g_up, np.array([0.0, 1.0, 0.0]))
             aligned_n = all_n @ R_align.T
             yaw, score = dominant_yaw(aligned_n)
@@ -448,27 +552,35 @@ def _build_room_frameset(name: str, photos: list[_Photo], comp: list[int], tree_
 
     A = np.eye(4)
     A[:3, :3] = R_align
+    aligned_pose_map = {g: A @ pose_map[g] for g in comp}
     frames = []
     for g in comp:
         ph = photos[g]
-        T_wc = A @ pose_map[g]
-        frames.append(Frame(index=g, timestamp=float(g), T_wc=T_wc, K_depth=ph.K, K_rgb=ph.K,
+        frames.append(Frame(index=g, timestamp=float(g), T_wc=aligned_pose_map[g], K_depth=ph.K, K_rgb=ph.K,
                             load_depth=_make_depth_loader(ph.depth_raw, scale_map[g]),
                             load_rgb=_make_rgb_loader(ph.rgb), group=name))
     fs = FrameSet("photo", frames, PHOTO_ERRORS, source=name,
                  meta={"n_photos": len(comp), "main_component": main,
                        "photo_scales": {photos[g].path.name: float(scale_map[g]) for g in comp},
                        "paths": [str(photos[g].path) for g in comp],
-                       "focal_sources": {photos[g].path.name: photos[g].focal_src for g in comp}})
-    return fs, warnings, pose_map
+                       "focal_sources": {photos[g].path.name: photos[g].focal_src for g in comp},
+                       "depth_model": model_id,
+                       "depth_model_license": _depth_backend.MODEL_LICENSES.get(model_id, "unknown")
+                       if hasattr(_depth_backend, "MODEL_LICENSES") else "unknown"})
+    # pose_map returned to the caller is the gravity-aligned (A @ ...) pose,
+    # i.e. exactly the Frame.T_wc above: _RoomPhotoRef.pose (used by
+    # _cross_room_links to compute cross-room SE(3) transforms) must match
+    # what the FrameSet actually carries, not the pre-alignment pose.
+    return fs, warnings, aligned_pose_map, scale_map
 
 
-def _process_room(name: str, paths: list[Path], cache_dir, device, progress=None):
+def _process_room(name: str, paths: list[Path], cache_dir, device, model_id: str = DEFAULT_MODEL_ID,
+                  progress=None):
     warnings: list[str] = []
     photos: list[_Photo] = []
     for p in paths:
         try:
-            photos.append(_load_photo(p, cache_dir, device, progress))
+            photos.append(_load_photo(p, cache_dir, device, model_id=model_id, progress=progress))
         except Exception as exc:
             warnings.append(f"room '{name}': could not read '{p.name}' ({exc}); skipped")
     n = len(photos)
@@ -490,11 +602,12 @@ def _process_room(name: str, paths: list[Path], cache_dir, device, progress=None
     main_comp = comp_list[0]
     frag_comps = comp_list[1:]
 
-    main_fs, main_warn, main_poses = _build_room_frameset(name, photos, main_comp, tree_edges, main=True)
+    main_fs, main_warn, main_poses, main_scales = _build_room_frameset(name, photos, main_comp, tree_edges,
+                                                                        main=True, model_id=model_id)
     warnings.extend(main_warn)
     frag_fs_list = []
     for comp in frag_comps:
-        fs, fw, _ = _build_room_frameset(name, photos, comp, tree_edges, main=False)
+        fs, fw, _, _ = _build_room_frameset(name, photos, comp, tree_edges, main=False, model_id=model_id)
         frag_fs_list.append(fs)
         names = [photos[g].path.name for g in comp]
         warnings.append(f"room '{name}': {len(comp)} photo(s) {names} did not register against the "
@@ -505,13 +618,120 @@ def _process_room(name: str, paths: list[Path], cache_dir, device, progress=None
 
     refs = []
     for g, p in enumerate(photos):
-        pose = main_poses.get(g) if g in main_comp else None
-        refs.append(_RoomPhotoRef(room=name, path=p.path, hash=p.hash, pose=pose, K=p.K,
+        in_main = g in main_comp
+        pose = main_poses.get(g) if in_main else None
+        scale = main_scales.get(g) if in_main else None
+        refs.append(_RoomPhotoRef(room=name, path=p.path, hash=p.hash, pose=pose, scale=scale, K=p.K,
                                   depth_raw=p.depth_raw, kp=p.kp, desc=p.desc))
     return main_fs, frag_fs_list, refs, warnings
 
 
 # ---------------------------------------------------------------- cross-room
+
+
+def _apply_global_scale(fs: FrameSet, c: float):
+    """Rescale every frame in `fs` by `c`: camera translations and the
+    metric depth each frame loads, in place. Used only for the
+    cross-room scale-anchoring correction below -- a uniform rescale of a
+    whole room about its own origin leaves every relative measurement
+    inside that room (wall lengths, door widths, areas up to c^2) exactly
+    as internally self-consistent as before, it just changes which
+    absolute metres they are expressed in.
+    """
+    if abs(c - 1.0) < 1e-9:
+        return
+    for f in fs.frames:
+        f.T_wc = _scale_translation(f.T_wc, c)
+        old_load = f.load_depth
+
+        def new_load(old=old_load, c=c):
+            d, v = old()
+            return d * c, v
+        f.load_depth = new_load
+    fs.meta["global_scale_correction"] = round(float(c), 4)
+
+
+def _cross_room_scale_corrections(registry: list[_RoomPhotoRef], progress=None) -> dict[str, float]:
+    """Shared doorway photos as scale anchors.
+
+    A doorway photo copied byte-for-byte into two room folders has exactly
+    one underlying depth map, but each room's own registration resolves an
+    independent scale for it (relative to that room's own, separately
+    median-recentred, photo set). Any disagreement between the two rooms'
+    resolved scale for *that one photo* is therefore a direct, measured
+    estimate of their relative absolute-scale error -- not a modelling
+    assumption, unlike the feature_match path's "scale=1 since we can't
+    tell" default. This chains those pairwise ratios into one global
+    per-room correction via a spanning tree over the shared-photo graph.
+    Rooms with no shared-photo path to anything else get no correction:
+    there is nothing measured to correct them against.
+    """
+    hash_rooms: dict[str, dict[str, _RoomPhotoRef]] = {}
+    for r in registry:
+        if r.pose is None or r.scale is None or r.scale <= 1e-9:
+            continue
+        hash_rooms.setdefault(r.hash, {}).setdefault(r.room, r)
+
+    # A single doorway photo is only ever one noisy measurement (each
+    # room's own resolved scale for it rests on however well that one
+    # photo happened to register against its own 1-7 neighbours). Chaining
+    # a wild single-edge disagreement multiplicatively through several
+    # rooms can amplify rather than correct error (measured: an
+    # unclamped version of this produced a >2000% area error on one
+    # capture). A per-edge ratio outside [0.25, 4] is treated as the
+    # anchor photo having registered badly in at least one of the two
+    # rooms, not as a real 4x+ scale disagreement, and is dropped rather
+    # than trusted.
+    edge_bounds = (0.25, 4.0)
+    adj: dict[str, list[tuple[str, float]]] = {}
+    dropped = 0
+    for h, by_r in hash_rooms.items():
+        rn = sorted(by_r)
+        for a_i in range(len(rn)):
+            for b_i in range(a_i + 1, len(rn)):
+                ra, rb = by_r[rn[a_i]], by_r[rn[b_i]]
+                ratio_ab = ra.scale / rb.scale   # c_b = c_a * ratio_ab
+                if not (edge_bounds[0] <= ratio_ab <= edge_bounds[1]):
+                    dropped += 1
+                    continue
+                adj.setdefault(ra.room, []).append((rb.room, ratio_ab))
+                adj.setdefault(rb.room, []).append((ra.room, 1.0 / ratio_ab))
+    if dropped and progress:
+        progress(f"  scale anchor: ignored {dropped} shared-photo scale ratio(s) outside "
+                f"[{edge_bounds[0]}, {edge_bounds[1]}]x (unreliable single-photo measurement)")
+    if not adj:
+        return {}
+
+    correction: dict[str, float] = {}
+    for start in sorted(adj):
+        if start in correction:
+            continue
+        correction[start] = 1.0
+        stack = [start]
+        while stack:
+            cur = stack.pop()
+            for other, ratio in adj[cur]:
+                if other in correction:
+                    continue
+                correction[other] = correction[cur] * ratio
+                stack.append(other)
+
+    # Same guard on the final chained value (a couple of borderline-ok
+    # edges can still compound past a sane range over a longer chain).
+    chain_bounds = (0.3, 3.0)
+    for name in list(correction):
+        c = correction[name]
+        if not (chain_bounds[0] <= c <= chain_bounds[1]):
+            if progress:
+                progress(f"  scale anchor: room '{name}' chained correction {c:.3f}x outside "
+                        f"[{chain_bounds[0]}, {chain_bounds[1]}]x; not applying it")
+            correction[name] = 1.0
+
+    if progress:
+        for name, c in sorted(correction.items()):
+            progress(f"  scale anchor: room '{name}' global correction = {c:.3f}x")
+    return correction
+
 
 
 def _cross_room_links(registry: list[_RoomPhotoRef], progress=None, min_inliers: int = 12):
@@ -539,8 +759,18 @@ def _cross_room_links(registry: list[_RoomPhotoRef], progress=None, min_inliers:
                     continue
                 ra, rb = by_r[rn[a_i]], by_r[rn[b_i]]
                 T_a_from_b = ra.pose @ np.linalg.inv(rb.pose)
+                # "inliers" here is really a placement-confidence weight fed
+                # into stitch.py's max-spanning-forest edge selection: a
+                # byte-identical doorway photo registered independently in
+                # both rooms' own pose graphs is far more trustworthy than
+                # any generic cross-folder SIFT match (which can and does
+                # false-positive between visually similar rooms, e.g. same
+                # flooring/paint, in the same apartment -- see the eval
+                # report), so it must outrank feature_match whenever both
+                # exist for the same room pair.
                 links.append({"rooms": [ra.room, rb.room], "T_a_from_b": T_a_from_b, "scale": 1.0,
-                             "inliers": 1, "evidence": "shared_photo", "via": [ra.path.name]})
+                             "inliers": SHARED_PHOTO_WEIGHT, "evidence": "shared_photo",
+                             "via": [ra.path.name]})
                 done_pairs.add(key)
                 if progress:
                     progress(f"  link {ra.room} <-> {rb.room}: shared photo {ra.path.name}")
@@ -579,7 +809,8 @@ def _cross_room_links(registry: list[_RoomPhotoRef], progress=None, min_inliers:
 # --------------------------------------------------------------------- public
 
 
-def load_photo_property(root: str | Path, cache_dir=".cache", device=None, progress=None) -> PhotoProperty:
+def load_photo_property(root: str | Path, cache_dir=".cache", device=None, model_id: str = DEFAULT_MODEL_ID,
+                        progress=None) -> PhotoProperty:
     """Build a PhotoProperty from `root`/<room>/*.{jpg,heic,png}.
 
     `root` must contain one sub-folder per room (any names), each holding
@@ -588,6 +819,12 @@ def load_photo_property(root: str | Path, cache_dir=".cache", device=None, progr
     matches. Never raises on a registration failure inside a room (bad
     photos become fragments); only raises if a room folder has zero
     readable images or the root has no room sub-folders at all.
+
+    `model_id`: dense per-photo depth model (see mono_depth.py / this
+    module's `DEFAULT_MODEL_ID` / `LEGACY_MODEL_ID`). Defaults to the model
+    bench/eval_depth_scale.py measured as having the smallest metric-depth
+    scale bias against LiDAR; pass `LEGACY_MODEL_ID` to restore the
+    previous Depth-Anything-V2-Metric-Indoor-Small behaviour.
     """
     root = Path(root)
     room_dirs = sorted(p for p in root.iterdir() if p.is_dir())
@@ -605,7 +842,8 @@ def load_photo_property(root: str | Path, cache_dir=".cache", device=None, progr
         paths = _list_images(room_dir)
         if progress:
             progress(f"[{name}] {len(paths)} photo file(s)")
-        main_fs, frag_fs_list, refs, room_warnings = _process_room(name, paths, cache_dir, device, progress)
+        main_fs, frag_fs_list, refs, room_warnings = _process_room(name, paths, cache_dir, device,
+                                                                   model_id=model_id, progress=progress)
         rooms[name] = main_fs
         if frag_fs_list:
             fragments[name] = frag_fs_list
@@ -618,12 +856,34 @@ def load_photo_property(root: str | Path, cache_dir=".cache", device=None, progr
             "n_fragment_photos": sum(len(f.frames) for f in frag_fs_list),
         }
 
+    corrections = _cross_room_scale_corrections(registry, progress)
+    if corrections:
+        for name, c in corrections.items():
+            if abs(c - 1.0) < 1e-6:
+                continue
+            _apply_global_scale(rooms[name], c)
+            for fs in fragments.get(name, []):
+                _apply_global_scale(fs, c)
+            meta["rooms"][name]["global_scale_correction"] = round(c, 4)
+            warnings.append(f"room '{name}': rescaled by {c:.3f}x using shared-doorway-photo scale "
+                            f"anchoring (its own depth-model scale disagreed with a neighbour's "
+                            f"independent estimate of the same photo)")
+        # the registry's cached poses/scales predate this correction; refresh
+        # them so _cross_room_links' feature_match path (which still reads
+        # registry poses, not the FrameSets) sees the corrected geometry too
+        for r in registry:
+            c = corrections.get(r.room)
+            if c and r.pose is not None:
+                r.pose = _scale_translation(r.pose, c)
+                r.scale = r.scale * c if r.scale is not None else None
+
     links = _cross_room_links(registry, progress)
     meta["n_links"] = len(links)
     meta["n_rooms"] = len(room_dirs)
+    meta["n_scale_corrections"] = sum(1 for c in corrections.values() if abs(c - 1.0) >= 1e-6)
     if len(links) < len(room_dirs) - 1:
         warnings.append(f"only {len(links)} cross-room link(s) found for {len(room_dirs)} rooms; "
                         f"the stitched plan may be unable to place every room with evidence "
-                        f"(see docs/protocol_photo_section.md for the doorway-photo step)")
+                        f"(see the Photos section of docs/capture_protocol.md for the doorway-photo step)")
 
     return PhotoProperty(rooms=rooms, fragments=fragments, links=links, warnings=warnings, meta=meta)

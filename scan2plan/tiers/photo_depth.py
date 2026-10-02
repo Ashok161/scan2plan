@@ -1,10 +1,12 @@
 """Monocular metric depth for the photo tier, with a disk cache.
 
-Private to the photo tier. The video tier is expected to grow a sibling
-`scan2plan/tiers/mono_depth.py` with the same `predict_depth(rgb_uint8,
-model_id, cache_key) -> (depth_m, focal_px_or_None)` signature; the two should
-be unified into one shared wrapper once that file exists (same cache format,
-same model loader, same device logic) rather than kept as two copies.
+SUPERSEDED: `scan2plan/tiers/mono_depth.py` now exists (the shared wrapper
+the video tier uses) and `photo.py` imports it directly, falling back to
+this module only via a try/except ImportError if mono_depth.py is ever
+missing. This file is kept, working and tested, purely as that fallback --
+it was written before mono_depth.py existed, with the same
+`predict_depth(rgb_uint8, model_id, cache_key) -> (depth_m,
+focal_px_or_None)` signature so the two are drop-in compatible.
 
 Default model: "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf"
 (transformers `depth-estimation` pipeline). It is small (~100 MB), fast on
@@ -72,12 +74,17 @@ def _cache_path(cache_dir: Path, model_id: str, cache_key: str) -> Path:
 
 def predict_depth(rgb_uint8: np.ndarray, model_id: str = DEFAULT_MODEL_ID,
                   cache_key: str | None = None, cache_dir: str | Path = ".cache",
-                  device: str | None = None):
+                  device: str | None = None, focal_hint_px: float | None = None):
     """RGB uint8 HxWx3 -> (depth_m HxW float32, focal_px_or_None).
 
     Disk-cached by (model_id, cache_key). If `cache_key` is None the result is
     not cached. Depth is resized to the input resolution if the model's
     native output differs.
+
+    `focal_hint_px` is accepted for drop-in compatibility with
+    mono_depth.predict_depth's signature but is a no-op here: Depth Anything
+    (this module's only model) doesn't predict its own focal length, so
+    there's nothing to rescale against.
     """
     cache_dir = Path(cache_dir)
     cpath = None
