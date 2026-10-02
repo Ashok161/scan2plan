@@ -25,16 +25,30 @@ def detect_tier(path: Path) -> str:
     from .io.stray import is_stray_capture
     if path.is_file() and path.suffix.lower() in VID_EXT:
         return "video"
+    if path.is_file() and path.suffix.lower() == ".zip":
+        import zipfile
+        try:
+            with zipfile.ZipFile(path) as zf:
+                if any(n.endswith("transforms.json") for n in zf.namelist()):
+                    return "video"      # NeRFCapture AirDrop zip hand-off (any iPhone)
+        except zipfile.BadZipFile:
+            pass
+        raise SystemExit(f"cannot detect input tier for zip {path}: expected a NeRFCapture "
+                         f"export (transforms.json + images/)")
     if path.is_dir():
         if is_stray_capture(path):
             return "lidar"
+        # NeRFCapture export: RGB + ARKit poses (any iPhone). transforms.json may sit at the
+        # top level, or one level down (a real export unzips into a dated subfolder).
+        if (path / "transforms.json").exists() or any(path.rglob("transforms.json")):
+            return "video"
         subs = [d for d in path.iterdir() if d.is_dir()]
         if subs and any(f.suffix.lower() in IMG_EXT for d in subs for f in d.iterdir()):
             return "photo"
         if any(f.suffix.lower() in IMG_EXT for f in path.iterdir()):
             return "photo"
     raise SystemExit(f"cannot detect input tier for {path}: expected a StrayScanner folder, a video file, "
-                     f"or a folder of per-room photo folders")
+                     f"a NeRFCapture folder/zip, or a folder of per-room photo folders")
 
 
 def capture_id(path: Path) -> str:
@@ -42,7 +56,7 @@ def capture_id(path: Path) -> str:
 
 
 def run(path: str | Path, tier: str = "auto", out: str | Path | None = None, drift: bool = True,
-        damage: bool = True, cache_dir: str = ".cache", quiet: bool = False) -> dict:
+        damage: bool = True, cache_dir: str = ".cache", quiet: bool = False, plain_video: bool = False) -> dict:
     path = Path(path).expanduser().resolve()
     if not path.exists():
         raise SystemExit(f"input not found: {path}")
@@ -71,9 +85,20 @@ def run(path: str | Path, tier: str = "auto", out: str | Path | None = None, dri
         timings["load"] = round(time.time() - t0, 2)
         plan = build_plan(fs, drift_correction=drift, progress=log)
     elif tier == "video":
-        from .tiers.video import load_video
-        video = path / "rgb.mp4" if path.is_dir() else path
-        fs = load_video(video, cache_dir=cache_dir, progress=log)
+        is_posed_input = path.is_dir() or path.suffix.lower() == ".zip"
+        if is_posed_input and not plain_video:
+            # video + phone motion: RGB + ARKit metric poses (StrayScanner / NeRFCapture
+            # folder or AirDrop zip), no depth sensor
+            from .tiers.posed_video import load_posed_video
+            fs = load_posed_video(path, cache_dir=cache_dir, progress=log)
+        else:
+            # plain clip: monocular depth + visual odometry, scale from the depth model only
+            from .tiers.video import load_video
+            video = path / "rgb.mp4" if path.is_dir() else path
+            # StrayScanner stores ARKit frames sensor-landscape without a rotation tag (portrait
+            # hold -> 90 deg CW); clips from the Camera app carry rotation metadata instead
+            rot = 1 if path.is_dir() else None
+            fs = load_video(video, cache_dir=cache_dir, progress=log, rotation_k=rot)
         timings["load_and_reconstruct"] = round(time.time() - t0, 2)
         plan = build_plan(fs, drift_correction=drift, progress=log)
     elif tier == "photo":
@@ -153,6 +178,8 @@ def main(argv=None):
     r.add_argument("--out", default=None)
     r.add_argument("--no-drift", action="store_true", help="ablation: use poses as captured")
     r.add_argument("--no-damage", action="store_true")
+    r.add_argument("--plain-video", action="store_true",
+                   help="video tier from RGB only (ignore phone motion data even if present)")
     r.add_argument("--cache", default=".cache")
     r.add_argument("--quiet", action="store_true")
     v = sub.add_parser("validate", help="validate a plan.json against the schema")
@@ -160,7 +187,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.cmd == "run":
         run(a.capture, a.tier, a.out, drift=not a.no_drift, damage=not a.no_damage, cache_dir=a.cache,
-            quiet=a.quiet)
+            quiet=a.quiet, plain_video=a.plain_video)
     elif a.cmd == "validate":
         from .output import validate
         errs = validate(json.loads(Path(a.json).read_text()))
