@@ -29,8 +29,15 @@ class TierErrorModel:
 
 
 LIDAR_ERRORS = TierErrorModel("lidar", 0.008, 0.004, 0.004, 0.002, 0.0004, 0.02)
-VIDEO_ERRORS = TierErrorModel("video", 0.03, 0.02, 0.01, 0.012, 0.002, 0.05)
-PHOTO_ERRORS = TierErrorModel("photo", 0.05, 0.03, 0.02, 0.03, 0.0, 0.10)
+# Video scale sigma is calibrated to the measured trajectory scale error of the video tier on the
+# three sample captures (26%, 43%, 88% vs ARKit; RMS 59%, bench/eval_video_tier.py). With n=3 this is
+# a coarse calibration, but the alternative (the 1.2% a metric-depth model card suggests) produced
+# intervals that covered the LiDAR reference almost never: confident garbage.
+VIDEO_ERRORS = TierErrorModel("video", 0.03, 0.02, 0.01, 0.55, 0.002, 0.05)
+# Photo scale sigma: per-room length-scale error measured on the sample data has median 0.59
+# (IQR 0.43-0.78; bench/eval_photo_tier.py). It is bimodal: rooms anchored by a well-registered
+# doorway photo land within ~10%, unanchored rooms are off by 70%+.
+PHOTO_ERRORS = TierErrorModel("photo", 0.05, 0.03, 0.02, 0.55, 0.0, 0.10)
 
 
 @dataclass

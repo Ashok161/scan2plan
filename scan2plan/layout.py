@@ -20,12 +20,18 @@ from shapely.ops import unary_union
 from .frames import FrameSet
 from .fusion import Cloud, fuse, select_keyframes, voxel_downsample
 from .manhattan import dominant_yaw, floor_and_ceiling, horizontal_plane_peaks, refine_plane_height, yaw_rotation
-from .maps import Maps, build_maps, refine_partition, segment_rooms_by_walls
+from .maps import Maps, build_maps, consensus_labels, refine_partition, segment_rooms_by_walls
 from .measure import Measurement, area_measurement, combine, length_measurement
 from .plan_types import Opening, Plan, Room, Wall
 from .walls import Gap, extract_wall_lines, find_gaps
 
 DOOR_MAX = 1.3
+# A wall plane whose supporting points never reach this height is not evidence of a
+# wall: kitchen units, wardrobes, beds and sofas present vertical faces up to ~1.5 m.
+# Such an edge is reported as "occluded" with OCCLUDED_SIGMA (true wall at or behind it).
+FURNITURE_H = 1.6
+OCCLUDED_SIGMA = 0.25
+UNSEEN_SIGMA = 0.30
 
 
 # --------------------------------------------------------------------------- utils
@@ -263,7 +269,7 @@ def refine_edge(wp: WallPoints, axis: int, c: float, span: tuple[float, float], 
     from the room) is the +axis direction. Picks the outermost well-supported
     plane facing into the room (so cabinet fronts do not win over the wall
     behind them when the wall is visible above them).
-    Returns (c_refined, sigma_fit, n_points, coverage).
+    Returns (c_refined, sigma_fit, n_points, coverage, max_support_height).
     """
     a, b = min(span), max(span)
     trim = min(0.08, 0.2 * (b - a))
@@ -278,13 +284,13 @@ def refine_edge(wp: WallPoints, axis: int, c: float, span: tuple[float, float], 
         coord, along = wp.p[idx, 2], wp.p[idx, 0]
         ncomp = wp.n[idx, 2]
     if len(idx) == 0:
-        return c, None, 0, 0.0
+        return c, None, 0, 0.0, 0.0
     s = (coord - c) * out_sign                 # outward offset
     facing = (-ncomp * out_sign) > 0.8         # normal points into the room
     sel = facing & (s > -search_in) & (s < search_out)
     if sel.sum() < 20:
-        return c, None, int(sel.sum()), 0.0
-    s, along, w = s[sel], along[sel], wp.w[idx][sel]
+        return c, None, int(sel.sum()), 0.0, 0.0
+    s, along, w, hh = s[sel], along[sel], wp.w[idx][sel], wp.h[idx][sel]
     bins = np.arange(-search_in, search_out + 0.005, 0.005)
     hist, e = np.histogram(s, bins=bins, weights=w)
     hs = np.convolve(hist, [1, 2, 3, 2, 1], mode="same") / 9.0
@@ -304,8 +310,10 @@ def refine_edge(wp: WallPoints, axis: int, c: float, span: tuple[float, float], 
         best = (0.5 * (e[int(np.argmax(hs))] + e[int(np.argmax(hs)) + 1]), 0.0)
     s0, _ = best
     m, sd, n = refine_plane_height(s, s0, window=0.02)
-    cov = _coverage(along[np.abs(s - m) < 0.025], lo, hi)
-    return c + m * out_sign, sd, n, cov
+    inl = np.abs(s - m) < 0.025
+    cov = _coverage(along[inl], lo, hi)
+    hmax = float(np.percentile(hh[inl], 98)) if inl.sum() > 10 else 0.0
+    return c + m * out_sign, sd, n, cov, hmax
 
 
 def _coverage(along: np.ndarray, lo: float, hi: float, bin_size: float = 0.05) -> float:
@@ -320,7 +328,8 @@ def _coverage(along: np.ndarray, lo: float, hi: float, bin_size: float = 0.05) -
 
 def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
                progress=None, cloud: Cloud | None = None, single_room: bool = False,
-               room_name: str | None = None, low_walls: bool = True, neck_split: bool = True) -> Plan:
+               room_name: str | None = None, low_walls: bool = False, neck_split: bool = False,
+               bagging: int = 1) -> Plan:
     """single_room: the capture is one room (photo tier folder); skip door segmentation."""
     t0 = time.time()
     log = progress or (lambda *_: None)
@@ -357,9 +366,28 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
     on_bar = np.zeros(len(h), bool)
     on_bar[ok] = maps.barrier[ij[ok, 0], ij[ok, 1]]
     sel = (np.abs(cloud.normals[:, 1]) < 0.3) & (h > 0.25) & (h < min(1.95, top - 0.1)) & on_bar
-    lines = extract_wall_lines(cloud.points[sel][:, [0, 2]], cloud.normals[sel][:, [0, 2]])
+    wxz, wn = cloud.points[sel][:, [0, 2]], cloud.normals[sel][:, [0, 2]]
+    lines = extract_wall_lines(wxz, wn)
     gaps = find_gaps(lines)
     labels, n_rooms, closures = segment_rooms_by_walls(maps, gaps, door_max=DOOR_MAX)
+    if bagging > 1:
+        # bagging: rooms whose partition flips when 15% of the points are removed are coin flips;
+        # the majority partition over bootstrap rebuilds of the evidence maps is the stable one
+        rng = np.random.default_rng(0)
+        runs = [labels]
+        for b in range(bagging - 1):
+            keep = rng.random(len(cloud.points)) < 0.85
+            cb = cloud.subset(keep)
+            mb = build_maps(cb, floor_y, ceil_y, res=res, grid=g, seed=b + 1)
+            hb = h[keep]
+            ijb = g.ij(cb.points[:, [0, 2]])
+            okb = g.inside(ijb)
+            barb = np.zeros(len(hb), bool)
+            barb[okb] = mb.barrier[ijb[okb, 0], ijb[okb, 1]]
+            sb = (np.abs(cb.normals[:, 1]) < 0.3) & (hb > 0.25) & (hb < min(1.95, top - 0.1)) & barb
+            g_b = find_gaps(extract_wall_lines(cb.points[sb][:, [0, 2]], cb.normals[sb][:, [0, 2]]))
+            runs.append(segment_rooms_by_walls(mb, g_b, door_max=DOOR_MAX)[0])
+        labels, n_rooms = consensus_labels(maps, runs)
     if neck_split:
         labels, n_rooms = refine_partition(labels, maps, door_max=DOOR_MAX)
     if single_room:
@@ -389,14 +417,19 @@ def build_plan(fs: FrameSet, drift_correction: bool = True, res: float = 0.02,
             rooms.append(room)
         else:
             warnings.append(f"region {r} could not be converted to a polygon")
-    _assign_openings(rooms, gaps, closures, labels, g, wp, floor_y, errs, maps)
+    tester = ThroughTester(cloud, floor_y, rooms)
+    _assign_openings(rooms, gaps, closures, labels, g, wp, floor_y, errs, maps, tester)
     adjacency = _adjacency(rooms)
     _name_rooms(rooms)
     if single_room and room_name and rooms:
         rooms[0].name = room_name
 
-    polys = [Polygon(r.polygon) for r in rooms]
-    fp = unary_union(polys) if polys else None
+    from shapely.validation import make_valid
+    polys = [make_valid(Polygon(r.polygon)) for r in rooms]
+    try:
+        fp = unary_union(polys) if polys else None
+    except Exception:                   # GEOS topology error on a degenerate polygon
+        fp = unary_union([p.buffer(0) for p in polys]) if polys else None
     footprint = None
     if fp is not None:
         per = sum(r.perimeter.value for r in rooms)
@@ -456,7 +489,7 @@ def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob,
     # refine each line's plane on raw points; flatten unobserved notches
     for _ in range(12):
         V = _vertices(lines)
-        sig, cov = _refine_lines(lines, V, wp, errs)
+        sig, cov, _ = _refine_lines(lines, V, wp, errs)
         nl = len(lines)
         if nl <= 4:
             break
@@ -474,7 +507,7 @@ def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob,
         V = _vertices(lines)
         V, lines = _ccw(V, lines)
     V = _vertices(lines)
-    sig, cov = _refine_lines(lines, V, wp, errs)
+    sig, cov, state = _refine_lines(lines, V, wp, errs)
     # lines are now refined; vertex k = line k-1 ∩ line k  => edge k is on line k
     V = _vertices_edges(lines)
     poly = Polygon(V)
@@ -489,15 +522,13 @@ def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob,
     notes = []
     ceil_y = None
     if len(cp) > 200:
-        peaks = horizontal_plane_peaks(cp[:, 1], min_frac=0.02)
-        if peaks:
-            # the ceiling plane covering most of the room (bulkheads are smaller)
-            best = max(peaks, key=lambda t: t[1])
-            ceil_y, c_sd, c_n = refine_plane_height(cp[:, 1], best[0], 0.03)
-            if len(peaks) > 1:
-                lv = sorted({round(p[0] - floor_y, 2) for p in peaks if p[1] > 0.15 * best[1]})
-                if len(lv) > 1:
-                    notes.append(f"multiple ceiling levels observed (m above floor): {lv}")
+        lvl = ceiling_level(cp)
+        if lvl is not None:
+            ceil_y, c_sd, c_n, levels = lvl
+            if len(levels) > 1:
+                notes.append("multiple ceiling levels observed (m above floor, plan area m2): "
+                             + ", ".join(f"{h - floor_y:.2f} ({a:.1f})" for h, a in levels)
+                             + "; reported height is the level covering the largest area")
     if ceil_y is not None:
         H = ceil_y - floor_y
         s_fit = combine(c_sd / math.sqrt(max(1.0, min(c_n / 25.0, 400.0))),
@@ -529,7 +560,11 @@ def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob,
         lm = length_measurement(L, (s_prev, s_next), errs.scale_sigma_rel,
                                 method="distance between adjacent wall planes")
         walls.append(Wall(f"{rid}.W{k + 1}", a, b, n_in, lm, ceiling_height, sig[k], cov[k],
-                          observed=cov[k] > 0.1))
+                          observed=state[k] == "wall"))
+    n_occ = sum(1 for st in state if st != "wall")
+    if n_occ:
+        notes.append(f"{n_occ} wall plane(s) not observed above {FURNITURE_H} m (furniture face or unseen); "
+                     f"their position carries a {OCCLUDED_SIGMA:.2f} m sigma")
     perim = sum(w.length.value for w in walls)
     per_m = Measurement(perim, combine(*[w.length.sigma for w in walls]) / math.sqrt(2), "m",
                         "sum of wall lengths")
@@ -547,9 +582,41 @@ def _build_room(rid, mask, g, wp: WallPoints, floor_pts, ceil_pts, floor_y_glob,
                 walls, [], notes)
 
 
+def ceiling_level(cp: np.ndarray, cell: float = 0.1):
+    """Main ceiling plane of a room: the level covering the largest plan AREA.
+
+    Point counts depend on where the camera looked (a bulkhead seen up close
+    outnumbers a ceiling glimpsed once); covered area does not. Returns
+    (y, sd, n, [(level_y, area_m2), ...]) or None.
+    """
+    peaks = horizontal_plane_peaks(cp[:, 1], min_frac=0.02)
+    if not peaks:
+        return None
+    big = max(c for _, c in peaks)
+    levels = []
+    for y0, cnt in peaks:
+        if cnt < 0.1 * big:
+            continue
+        sel = np.abs(cp[:, 1] - y0) < 0.03
+        if sel.sum() < 50:
+            continue
+        cells = np.unique(np.floor(cp[sel][:, [0, 2]] / cell).astype(np.int64), axis=0)
+        levels.append((float(y0), len(cells) * cell * cell))
+    if not levels:
+        return None
+    y_best = max(levels, key=lambda t: t[1])[0]
+    y, sd, n = refine_plane_height(cp[:, 1], y_best, 0.03)
+    return y, sd, n, sorted(levels)
+
+
 def _refine_lines(lines, V, wp, errs):
-    """Refine every line on raw points in place. Returns (sigma per line, coverage per line)."""
-    sig, cov = [], []
+    """Refine every line on raw points in place.
+
+    Returns (sigma per line, coverage per line, state per line) with state
+    "wall" (plane supported above FURNITURE_H), "occluded" (supported only
+    lower: may be furniture in front of the wall) or "unseen" (no points).
+    """
+    sig, cov, state = [], [], []
     nl = len(lines)
     for k in range(nl):
         # line k carries the edge from vertex k to vertex k+1
@@ -560,17 +627,21 @@ def _refine_lines(lines, V, wp, errs):
         # CCW polygon: interior on the left of the edge direction; outward = right
         right = np.array([d[1], -d[0]])
         out_sign = float(np.sign(right[0] if axis == 0 else right[1])) or 1.0
-        c_new, sd, n, cv = refine_edge(wp, axis, c, span, out_sign)
+        c_new, sd, n, cv, hmax = refine_edge(wp, axis, c, span, out_sign)
         if sd is None:
-            s_k = combine(errs.plane_bias, errs.coverage_penalty, 0.03)
+            s_k, st = combine(errs.plane_bias, UNSEEN_SIGMA), "unseen"
         else:
             if abs(c_new - c) < 0.35:
                 lines[k][1] = c_new
             n_eff = max(1.0, min(n / 25.0, 400.0))
             s_k = combine(sd / math.sqrt(n_eff), errs.plane_bias)
+            st = "wall"
+            if hmax < FURNITURE_H:
+                s_k, st = combine(s_k, OCCLUDED_SIGMA), "occluded"
         sig.append(combine(s_k, errs.coverage_penalty * (1.0 - cv)))
         cov.append(cv)
-    return sig, cov
+        state.append(st)
+    return sig, cov, state
 
 
 def _vertices_edges(lines) -> np.ndarray:
@@ -595,7 +666,97 @@ def _points_in(pts: np.ndarray, poly) -> np.ndarray:
 
 # --------------------------------------------------------------------------- openings
 
-def _assign_openings(rooms, gaps, closures, labels, g, wp: WallPoints, floor_y, errs, maps: Maps):
+class ThroughTester:
+    """Is a wall gap an opening? Count camera rays that actually passed through it.
+
+    An opening is somewhere the sensor saw *through* the wall plane: points
+    beyond the plane whose camera was on the room side and whose ray crossed
+    the plane inside the gap rectangle. An unobserved stretch of wall (hidden
+    behind furniture, or simply not swept) has none, even when another room
+    lies behind it. Density is normalised by the capture's own density of
+    points on observed walls, so thresholds do not depend on scan length.
+
+    Mirrors also pass rays "through" the plane, into a virtual room. Reflecting
+    those points back across the plane lands them on real points of the room;
+    for a doorway the reflected points mostly land in empty space.
+    """
+
+    def __init__(self, cloud: Cloud, floor_y: float, rooms, max_points: int = 2_500_000):
+        from scipy.spatial import cKDTree
+        rng = np.random.default_rng(0)
+        sub = rng.random(len(cloud.points)) < min(1.0, max_points / max(len(cloud.points), 1))
+        self.P = cloud.points[sub].astype(np.float64)
+        self.C = cloud.cam_pos[cloud.frame[sub]].astype(np.float64)
+        self.N = cloud.normals[sub]
+        self.floor_y = floor_y
+        self.tree = cKDTree(self.P[::4])
+        self.ref = self._reference_density(rooms)
+
+    def _plane_terms(self, center, n_in, along):
+        n3 = np.array([n_in[0], 0.0, n_in[1]])
+        u3 = np.array([along[0], 0.0, along[1]])
+        c0 = np.array([center[0], self.floor_y, center[1]])
+        return n3, u3, c0
+
+    def _reference_density(self, rooms):
+        dens = []
+        for r in rooms:
+            for w in r.walls:
+                if not w.observed or w.length.value < 0.8:
+                    continue
+                mid = 0.5 * (w.start + w.end)
+                along = (w.end - w.start) / w.length.value
+                n3, u3, c0 = self._plane_terms(mid, w.normal_in, along)
+                s_p = (self.P - c0) @ n3
+                al = (self.P - c0) @ u3
+                hh = self.P[:, 1] - self.floor_y
+                band = (np.abs(s_p) < 0.03) & (np.abs(al) < 0.5 * w.length.value - 0.1) & (hh > 0.1) & (hh < 2.0)
+                band &= (self.N @ n3) > 0.7
+                area = max(0.5, (w.length.value - 0.2) * 1.9 * max(w.coverage, 0.2))
+                dens.append(band.sum() / area)
+        return float(np.median(dens)) if dens else 1.0
+
+    def test(self, center, n_in, along, width):
+        n3, u3, c0 = self._plane_terms(center, n_in, along)
+        s_p = (self.P - c0) @ (-n3)
+        s_c = (self.C - c0) @ (-n3)
+        cand = (s_p > 0.1) & (s_p < 4.0) & (s_c < -0.05)
+        if not cand.any():
+            return 0.0, None, (None, None)
+        Pc, Cc = self.P[cand], self.C[cand]
+        t = s_c[cand] / (s_c[cand] - s_p[cand])
+        q = Cc + t[:, None] * (Pc - Cc)
+        al = (q - c0) @ u3
+        hh = q[:, 1] - self.floor_y
+        hit = (np.abs(al) < 0.5 * width - 0.03) & (hh > 0.1) & (hh < 2.0)
+        n_hit = int(hit.sum())
+        ratio = n_hit / max(width * 1.9, 0.1) / max(self.ref, 1e-9)
+        if n_hit < 50:
+            return ratio, None, (None, None)
+        # only surfaces parallel to the plane can tell a mirror from a doorway: floor, ceiling and
+        # perpendicular walls map onto themselves under any reflection across a vertical plane
+        par = np.abs(self.N[cand][hit] @ n3) > 0.8
+        lo, hi = np.percentile(hh[hit], [3, 97])
+        if par.sum() < 50:
+            return ratio, 0.0, (float(lo), float(hi))
+        X = Pc[hit][par][:: max(1, int(par.sum()) // 3000)]
+        sx = (X - c0) @ (-n3)
+        R = X + 2 * sx[:, None] * n3            # reflect back to the room side
+        d, _ = self.tree.query(R)
+        mirror = float(np.mean(d < 0.04))
+        return ratio, mirror, (float(lo), float(hi))
+
+
+# through-ratio thresholds, calibrated on the three sample captures against openings labelled by eye
+# in the camera frames (bench/label_openings.py, docs/technical_report.md section 2): real walk-through
+# doors measured 2.8-6.0, phantoms on unobserved wall 0-0.28, glass doors / stair voids 0.4-1.7
+OPEN_MIN = 0.3
+DOOR_MIN = 2.0
+MIRROR_MIN = 0.7
+
+
+def _assign_openings(rooms, gaps, closures, labels, g, wp: WallPoints, floor_y, errs, maps: Maps,
+                     tester: "ThroughTester | None" = None):
     """Attach gaps to the room walls they lie on; classify and measure them."""
     closure_kind = {id(gp): kind for gp, kind in closures}
     count = {r.id: 0 for r in rooms}
@@ -624,15 +785,23 @@ def _assign_openings(rooms, gaps, closures, labels, g, wp: WallPoints, floor_y, 
                     chosen.append(gp)
             for gp in sorted(chosen, key=lambda x: x.a):
                 op = _make_opening(room, w, gp, axis, c, u, labels, g, wp, floor_y, errs, maps,
-                                   closure_kind.get(id(gp)))
+                                   closure_kind.get(id(gp)), tester)
                 if op is None:
+                    continue
+                # the two faces of one wall can both carry the same opening: keep the better-evidenced one
+                dup = next((q for q in room.openings if abs(float(np.dot(q.along, op.along))) > 0.9
+                            and np.linalg.norm(q.center - op.center) < 0.45), None)
+                if dup is not None:
+                    if _through_of(op) > _through_of(dup):
+                        op.id = dup.id
+                        room.openings[room.openings.index(dup)] = op
                     continue
                 count[room.id] += 1
                 op.id = f"{room.id}.O{count[room.id]}"
                 room.openings.append(op)
 
 
-def _make_opening(room, wall, gp: Gap, axis, c, u, labels, g, wp, floor_y, errs, maps, closure):
+def _make_opening(room, wall, gp: Gap, axis, c, u, labels, g, wp, floor_y, errs, maps, closure, tester=None):
     a, b = gp.a, gp.b
     mid = 0.5 * (a + b)
     center = np.array([c, mid]) if axis == 0 else np.array([mid, c])
@@ -667,14 +836,6 @@ def _make_opening(room, wall, gp: Gap, axis, c, u, labels, g, wp, floor_y, errs,
     has_sill = len(low) > 30 and (np.percentile(low, 90) > 0.3)
     head_h = float(np.percentile(high, 5)) if len(high) > 20 else None
 
-    if not seen_through and closure is None and outside == 0:
-        return None                               # unobserved stretch of wall, not an opening
-    if has_sill and outside == 0:
-        kind = "window"
-    elif gp.width <= DOOR_MAX:
-        kind = "door"
-    else:
-        kind = "passage"
     # jamb refinement: perpendicular faces at the gap ends
     left, s_l = _jamb(wp, axis, c, a, +1, n_in)
     right, s_r = _jamb(wp, axis, c, b, -1, n_in)
@@ -682,11 +843,37 @@ def _make_opening(room, wall, gp: Gap, axis, c, u, labels, g, wp, floor_y, errs,
     if not (0.3 < width < gp.width + 0.15):
         left, right, s_l, s_r = a, b, 0.02, 0.02
         width = gp.width
+    mid = 0.5 * (left + right)
+    center = np.array([c, mid]) if axis == 0 else np.array([mid, c])
+    through = mirror = None
+    if tester is not None:
+        through, mirror, (t_lo, t_hi) = tester.test(center, n_in, u, width)
+        if through < OPEN_MIN:
+            return None                            # nothing seen through it: unobserved wall, not an opening
+        if mirror is not None and mirror > MIRROR_MIN:
+            room.notes.append(f"mirror on {wall.id} at {np.round(center, 2).tolist()} "
+                              f"({width:.2f} m wide): not an opening")
+            return None
+        if through >= DOOR_MIN and (t_lo is None or t_lo < 0.7):
+            kind = "door" if width <= DOOR_MAX else "passage"
+        else:
+            kind = "window"                        # glass / window / partial-height opening
+    else:
+        if not seen_through and closure is None and outside == 0:
+            return None
+        if has_sill and outside == 0:
+            kind = "window"
+        elif gp.width <= DOOR_MAX:
+            kind = "door"
+        else:
+            kind = "passage"
     wm = length_measurement(width, (s_l, s_r), errs.scale_sigma_rel,
                             method="jamb-to-jamb" if s_l < 0.02 else "gap between wall segments")
     connects = []
-    op = Opening("", kind, wall.id, center, u, wm, connects=connects,
-                 evidence=("closure:" + closure if closure else "gap") + (", seen-through" if seen_through else ""))
+    ev = "closure:" + closure if closure else "gap"
+    if through is not None:
+        ev += f", through-ratio {through:.2f}" + (f", mirror-score {mirror:.2f}" if mirror is not None else "")
+    op = Opening("", kind, wall.id, center, u, wm, connects=connects, evidence=ev)
     op._labels = (inside, outside)
     if head_h is not None:
         op.height = Measurement(head_h, combine(0.01, errs.plane_bias), "m", "lowest header point above gap")
@@ -694,6 +881,12 @@ def _make_opening(room, wall, gp: Gap, axis, c, u, labels, g, wp, floor_y, errs,
         sill = float(np.percentile(low, 95))
         op.sill = Measurement(sill, combine(0.015, errs.plane_bias), "m", "top of wall points below gap")
     return op
+
+
+def _through_of(op) -> float:
+    import re
+    m = re.search(r"through-ratio ([0-9.]+)", op.evidence or "")
+    return float(m.group(1)) if m else 0.0
 
 
 def _jamb(wp: WallPoints, axis, c, t_end, direction, n_in):

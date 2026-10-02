@@ -28,7 +28,7 @@ from .fusion import Cloud
 from .manhattan import floor_and_ceiling
 
 
-def _chunks(cloud: Cloud, path_len: float = 2.0, min_kf: int = 8) -> np.ndarray:
+def _chunks(cloud: Cloud, path_len: float = 1.0, min_kf: int = 6) -> np.ndarray:
     """Chunk id per keyframe: split the trajectory every ~path_len metres."""
     cp = cloud.cam_pos
     step = np.r_[0.0, np.linalg.norm(np.diff(cp, axis=0), axis=1)]
@@ -86,13 +86,20 @@ def _offset_to_anchors(coord, sign_arr, anchors, max_d=0.08):
 
 
 def _solve_smooth(meas, w, lam):
-    """argmin sum w_k (x_k - m_k)^2 + lam sum (x_{k+1} - x_k)^2."""
+    """argmin sum w_k (x_k - m_k)^2 + lam sum (x_{k+1} - 2 x_k + x_{k-1})^2.
+
+    Second-difference (curvature) penalty: accumulated drift is a ramp along the
+    trajectory, which a first-difference penalty would shrink towards a constant.
+    With too few measurements the solution falls back to a straight-line fit.
+    """
     K = len(meas)
     if K == 1:
         return np.array([meas[0] if w[0] > 0 else 0.0])
-    main = w + lam * np.r_[1.0, 2.0 * np.ones(K - 2), 1.0]
-    off = -lam * np.ones(K - 1)
-    A = diags([off, main + 1e-9, off], [-1, 0, 1], format="csc")
+    if K == 2:
+        return np.where(w > 0, meas, np.average(meas, weights=w + 1e-9))
+    from scipy.sparse import csc_matrix
+    D = diags([np.ones(K - 2), -2 * np.ones(K - 2), np.ones(K - 2)], [0, 1, 2], shape=(K - 2, K))
+    A = csc_matrix(diags(w + 1e-9) + lam * (D.T @ D))
     return spsolve(A, w * meas)
 
 
@@ -154,7 +161,7 @@ def correct_drift(cloud: Cloud, iterations: int = 3, lam_t: float = 4.0, lam_r: 
                 ang = np.arctan2(nc[hz, 2], nc[hz, 0])
                 zc = np.mean(np.exp(4j * ang))
                 dyaw = np.angle(zc) / 4.0
-                if abs(np.rad2deg(dyaw)) < 8 and abs(zc) > 0.4:
+                if abs(np.rad2deg(dyaw)) < 20 and abs(zc) > 0.4:
                     m[0, c], w[0, c] = dyaw, min(hz.sum() / 2000.0, 5.0) * abs(zc)
             fl = (nc[:, 1] > 0.9) & (np.abs(pc[:, 1] - floor_y) < 0.1)
             if fl.sum() > 200:
@@ -172,18 +179,21 @@ def correct_drift(cloud: Cloud, iterations: int = 3, lam_t: float = 4.0, lam_r: 
         for dof in range(4):
             if w[dof].sum() > 0:
                 corr[dof] -= np.sum(corr[dof] * w[dof]) / w[dof].sum()
-        # per-keyframe transform: yaw about the chunk's camera centroid, then translate
+        # per-keyframe transform: chunk corrections interpolated along the walked path,
+        # yaw applied about each keyframe's own camera centre (orientation drift rotates a
+        # frame's points about its camera), then translation
+        step = np.r_[0.0, np.linalg.norm(np.diff(cur.cam_pos, axis=0), axis=1)]
+        s_kf = np.cumsum(step)
+        s_c = np.array([s_kf[chunk == c].mean() for c in range(nC)])
+        per_kf = np.stack([np.interp(s_kf, s_c, corr[dof]) for dof in range(4)])
         T = np.tile(np.eye(4), (K, 1, 1))
-        for c in range(nC):
-            ks = np.flatnonzero(chunk == c)
-            pivot = cur.cam_pos[ks].mean(axis=0)
-            yaw = corr[0, c]
+        for k in range(K):
+            yaw = per_kf[0, k]
             cs, sn = np.cos(yaw), np.sin(yaw)
             R = np.array([[cs, 0, -sn], [0, 1, 0], [sn, 0, cs]])
-            Tc = np.eye(4)
-            Tc[:3, :3] = R
-            Tc[:3, 3] = pivot - R @ pivot + np.array([corr[2, c], corr[1, c], corr[3, c]])
-            T[ks] = Tc
+            pivot = cur.cam_pos[k]
+            T[k, :3, :3] = R
+            T[k, :3, 3] = pivot - R @ pivot + np.array([per_kf[2, k], per_kf[1, k], per_kf[3, k]])
         cur = cur.apply_frame_transforms(T)
         T_total = np.einsum("kij,kjl->kil", T, T_total)
         hist.append({"iter": it, "max_abs_xz_cm": round(float(np.abs(corr[2:]).max()) * 100, 2),
@@ -194,7 +204,7 @@ def correct_drift(cloud: Cloud, iterations: int = 3, lam_t: float = 4.0, lam_r: 
     sharp_after = _wall_sharpness(p, n, _wall_anchor_lines(p, n, 0), _wall_anchor_lines(p, n, 2))
     info = {
         "method": "plane-anchored correction: per-chunk yaw (Manhattan), height (floor plane) and x/z "
-                  "(consensus wall planes) offsets solved as a smoothed 1D pose graph per DoF, 3 iterations",
+                  "(consensus wall planes) offsets solved as a curvature-regularised 1D pose graph per DoF, per-keyframe interpolation, 3 iterations",
         "n_chunks": nC,
         "iterations": hist,
         "wall_plane_spread_before_mm": round(sharp_before * 1000, 2),

@@ -54,19 +54,22 @@ class Maps:
 
 
 def build_maps(cloud: Cloud, floor_y: float, ceil_y: float | None, res: float = 0.02,
-               max_rays_per_frame: int = 400, seed: int = 0) -> Maps:
+               max_rays_per_frame: int = 400, seed: int = 0, grid: Grid | None = None) -> Maps:
     p, n = cloud.points, cloud.normals
     h = p[:, 1] - floor_y
     top = (ceil_y - floor_y) if ceil_y is not None else 2.6
-    keep = (h > -0.1) & (h < top + 0.1)
-    xz_all = p[keep][:, [0, 2]]
-    lo = np.percentile(xz_all, 0.05, axis=0) - 0.5
-    hi = np.percentile(xz_all, 99.95, axis=0) + 0.5
     cam = cloud.cam_pos[:, [0, 2]]
-    lo = np.minimum(lo, cam.min(0) - 0.5)
-    hi = np.maximum(hi, cam.max(0) + 0.5)
-    shape = tuple(np.ceil((hi - lo) / res).astype(int))
-    g = Grid(float(lo[0]), float(lo[1]), res, shape)
+    if grid is None:
+        keep = (h > -0.1) & (h < top + 0.1)
+        xz_all = p[keep][:, [0, 2]]
+        lo = np.percentile(xz_all, 0.05, axis=0) - 0.5
+        hi = np.percentile(xz_all, 99.95, axis=0) + 0.5
+        lo = np.minimum(lo, cam.min(0) - 0.5)
+        hi = np.maximum(hi, cam.max(0) + 0.5)
+        shape = tuple(np.ceil((hi - lo) / res).astype(int))
+        grid = Grid(float(lo[0]), float(lo[1]), res, shape)
+    g = grid
+    shape = g.shape
 
     vert = np.abs(n[:, 1]) < 0.3
     band_hi = vert & (h > 1.25) & (h < min(1.95, top - 0.15))
@@ -319,7 +322,8 @@ def _disk(radius_cells: int) -> np.ndarray:
 
 
 def refine_partition(labels: np.ndarray, maps: Maps, core_dist: float = 0.45, door_max: float = 1.3,
-                     min_room: float = 1.5, sliver: float = 0.5, min_area: float = 1.0) -> tuple[np.ndarray, int]:
+                     min_room: float = 1.5, sliver: float = 0.5, min_area: float = 1.0,
+                     regrow: float = 0.3) -> tuple[np.ndarray, int]:
     """Fix-loop change (see docs/fix_declaration.md): partition rooms without relying on upper-band walls.
 
     1. Neck splitting: inside each region, distance-transform cores (> core_dist from any obstacle) are
@@ -374,12 +378,76 @@ def refine_partition(labels: np.ndarray, maps: Maps, core_dist: float = 0.45, do
         for i in [i for i in np.unique(sub) if i > 0]:
             room = sub == i
             opened = ndi.binary_opening(room, structure=_disk(max(1, int(round(sliver / 2 / res)))))
+            # opening can disconnect rooms that were joined only through a door: every
+            # visited piece of sufficient size is a room in its own right
             lab, nl = ndi.label(opened)
-            if nl > 1:
-                sizes = ndi.sum(np.ones_like(lab), lab, index=np.arange(1, nl + 1))
-                opened = lab == (1 + int(np.argmax(sizes)))
-            if opened.sum() * res * res < min_area or not (opened & near).any():
-                continue
-            nxt += 1
-            out[opened] = nxt
+            for c in range(1, nl + 1):
+                piece = lab == c
+                if piece.sum() * res * res < min_area or not (piece & near).any():
+                    continue
+                nxt += 1
+                out[piece] = nxt
+    # the opening only decides the partition; give rooms back their corners and edges
+    # (cells of the original region within regrow metres of the opened room)
+    steps = int(round(regrow / res))
+    domain = labels > 0
+    cross = ndi.generate_binary_structure(2, 1)
+    for _ in range(steps):
+        grown = ndi.grey_dilation(out, footprint=cross)
+        new = (out == 0) & domain & (grown > 0)
+        if not new.any():
+            break
+        out[new] = grown[new]
     return out, nxt
+
+
+def segment_consensus(maps: Maps, gaps, settings=None, min_area: float = 1.0):
+    """Threshold-robust room partition: majority vote over several segmentation settings.
+
+    Single runs flip near thresholds (a 1.31 m gap is a passage, a 1.29 m gap a
+    door), so a few mm of pose noise could change the room count. Each run
+    votes, per pair of neighbouring cells, "same room" or "different room";
+    boundaries are cut only where most runs agree. Returns
+    (labels, n_rooms, closures of the median run).
+    """
+    if settings is None:
+        settings = [dict(door_max=d, min_split_area=s) for d, s in
+                    ((1.15, 0.5), (1.3, 0.3), (1.3, 0.5), (1.3, 0.8), (1.45, 0.5))]
+    runs = [segment_rooms_by_walls(maps, gaps, min_area=min_area, **kw) for kw in settings]
+    out, k = consensus_labels(maps, [r[0] for r in runs], min_area)
+    median = runs[len(runs) // 2]
+    return out, k, median[2]
+
+
+def consensus_labels(maps: Maps, label_runs, min_area: float = 1.0):
+    """Majority partition of several label maps (per-neighbour-pair same/different votes)."""
+    n = len(label_runs)
+    shape = maps.interior.shape
+    in_votes = np.zeros(shape, np.int32)
+    diff_x = np.zeros((shape[0] - 1, shape[1]), np.int32)
+    diff_z = np.zeros((shape[0], shape[1] - 1), np.int32)
+    for lab in label_runs:
+        in_votes += lab > 0
+        diff_x += (lab[1:, :] != lab[:-1, :]) & (lab[1:, :] > 0) & (lab[:-1, :] > 0)
+        diff_z += (lab[:, 1:] != lab[:, :-1]) & (lab[:, 1:] > 0) & (lab[:, :-1] > 0)
+    inside = in_votes * 2 > n
+    cut = np.zeros(shape, bool)
+    bx = diff_x * 2 > n
+    bz = diff_z * 2 > n
+    cut[1:, :] |= bx
+    cut[:-1, :] |= bx
+    cut[:, 1:] |= bz
+    cut[:, :-1] |= bz
+    cross = ndi.generate_binary_structure(2, 1)
+    core, _ = ndi.label(inside & ~cut, structure=cross)
+    labels = geodesic_grow(core, inside, max_iter=6)
+    res = maps.grid.res
+    near = ndi.binary_dilation(maps.traj, iterations=int(round(0.3 / res)))
+    out = np.zeros_like(labels)
+    k = 0
+    for r in range(1, labels.max() + 1):
+        m = labels == r
+        if m.sum() * res * res >= min_area and (m & near).any():
+            k += 1
+            out[m] = k
+    return out, k
