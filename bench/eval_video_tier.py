@@ -63,12 +63,16 @@ def umeyama(src: np.ndarray, dst: np.ndarray):
 
 
 def eval_capture(path: str | Path, max_keyframes: int = 400, cache_dir: str | Path = ".cache",
-                  device: str | None = None) -> dict:
+                  device: str | None = None, rotation_k: int | None = 1) -> dict:
+    """rotation_k defaults to 1 (90 deg CW): StrayScanner rgb.mp4 stores raw ARKit frames
+    sensor-landscape with no rotation tag even though the phone was held portrait -- a fixed
+    property of this capture format (see scan2plan.tiers.video.load_video docstring and
+    scan2plan.cli's same forced override for StrayScanner folders), not content-dependent."""
     path = Path(path)
-    print(f"=== {path.name} ===")
+    print(f"=== {path.name} (rotation_k={rotation_k}) ===")
     t0 = time.time()
     fs = load_video(path / "rgb.mp4", cache_dir=cache_dir, max_keyframes=max_keyframes,
-                     device=device, progress=lambda m: print("  ", m))
+                     device=device, rotation_k=rotation_k, progress=lambda m: print("  ", m))
     runtime = time.time() - t0
 
     gtp = gt_poses(path)
@@ -101,11 +105,25 @@ def eval_capture(path: str | Path, max_keyframes: int = 400, cache_dir: str | Pa
     scale_ratio_std = float(np.std(ratio)) if len(ratio) else float("nan")
     scale_drift_half_pct = float(abs(s2 - s1) / max(s1, 1e-6) * 100.0) if len(ratio) else float("nan")
 
+    # load_video may have rotated frames upright (container metadata +
+    # content-based detection, see FrameSet.meta['orientation_detection']);
+    # the LiDAR depth/*.png ground truth is in StrayScanner's native
+    # (unrotated) layout, so undo that same rotation on our estimate before
+    # comparing pixel-wise, or every AbsRel number here is meaningless.
+    extra_deg = fs.meta.get("orientation_detection", {}).get("chosen_extra_rotation_deg", 0)
+    meta_deg = fs.meta.get("orientation_meta", 0) or 0
+    total_k = (round((extra_deg + meta_deg) / 90.0)) % 4  # forward rotation applied by load_video
+    import cv2
+    _inv_flag = {0: None, 1: cv2.ROTATE_90_COUNTERCLOCKWISE, 2: cv2.ROTATE_180,
+                 3: cv2.ROTATE_90_CLOCKWISE}[total_k]
+    inv_rot = (lambda im: im) if _inv_flag is None else (lambda im, f=_inv_flag: cv2.rotate(im, f))
+
     absrels = []
     for f, fi in zip(fs.frames, frame_idx):
         if fi not in gtp:
             continue
         d_est_map, _ = f.load_depth()
+        d_est_map = inv_rot(d_est_map)
         d_gt_map, v_gt = gt_depth(path, fi)
         d_est_r = np.asarray(
             Image.fromarray(d_est_map.astype(np.float32)).resize((DEPTH_W, DEPTH_H), Image.BILINEAR))

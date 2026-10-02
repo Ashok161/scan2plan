@@ -88,7 +88,7 @@ def relative_pose_pnp(pts_a_px: np.ndarray, pts_b_px: np.ndarray, depth_a: np.nd
         return None
     ok, rvec, tvec, inliers = cv2.solvePnPRansac(
         obj, img, K.astype(np.float64), None,
-        iterationsCount=300, reprojectionError=4.0, confidence=0.999,
+        iterationsCount=300, reprojectionError=2.5, confidence=0.999,
         flags=cv2.SOLVEPNP_EPNP)
     if not ok or inliers is None or len(inliers) < min_inliers:
         return None
@@ -167,21 +167,33 @@ def find_loop_closures(poses, kps, dess, depths, K, min_gap: int = 15,
                         depth_scale: tuple[float, float] = (1.0, 1.0)):
     """Match each keyframe against spatially-nearby earlier keyframes (outside a
     temporal window) using the current (drift-affected) chain as a proximity
-    prior. Returns a list of loop Edges."""
+    prior -- so it can still find true loop closures that *drift* has pushed
+    out of the current proximity estimate (common failure mode: a long
+    walk-the-perimeter scan really does end near where it started, but
+    accumulated VO drift makes the two ends look far apart in the current,
+    uncorrected position estimate). Returns a list of loop Edges."""
     n = len(poses)
     pos = poses[:, :3, 3]
+    n_anchor = min(5, max(1, n // 10))
+    anchors = list(range(n_anchor))
     loops = []
     for i in range(min_gap, n):
         cand = np.arange(0, i - min_gap)
         if len(cand) == 0:
             continue
         d = np.linalg.norm(pos[cand] - pos[i], axis=1)
-        order = np.argsort(d)
+        order = list(np.argsort(d))
+        tried = set()
         picked = 0
-        for c in order:
-            j = int(cand[c])
-            if d[c] > radius:
-                break
+        # proximity candidates (closest first, within radius)...
+        queue = [int(cand[c]) for c in order if d[c] <= radius]
+        # ...plus a fixed set of early-sequence anchors, regardless of the
+        # (possibly drift-corrupted) estimated distance.
+        queue += [a for a in anchors if a < i - min_gap and a not in queue]
+        for j in queue:
+            if j in tried:
+                continue
+            tried.add(j)
             ia, ib = match_descriptors(dess[j], dess[i])
             if len(ia) < min_inliers:
                 continue

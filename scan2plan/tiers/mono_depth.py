@@ -73,6 +73,7 @@ def predict_depth(
     cache_dir: str | Path = ".cache",
     device: str | None = None,
     resize_to_input: bool = True,
+    focal_hint_px: float | None = None,
 ) -> tuple[np.ndarray, float | None]:
     """Metric depth (metres, float32) + focal_px estimate (None if the model
     doesn't predict one, e.g. Depth-Anything).
@@ -85,13 +86,31 @@ def predict_depth(
     estimation (DepthPro) requires the true pixel width, so it is only
     returned when ``resize_to_input=True``.
 
-    Cached to ``{cache_dir}/mono_depth/{model_id}/{cache_key}_{res}.npz``: the
-    cache key is expected to already encode video-content-hash + frame-index
-    (the model id and resize mode are folded into the path), so re-runs on the
-    same video replay deterministically without touching the network or the
-    GPU/MPS device.
+    ``focal_hint_px``: if given and the model predicts its own focal length
+    (DepthPro), the returned depth is rescaled to what the model would have
+    produced had it been given this TRUE focal length instead of its own
+    FOV-head estimate, and the returned focal is ``focal_hint_px`` itself.
+    This is exact, not an approximation: DepthPro's post-processing converts
+    canonical inverse depth to metric depth via
+    ``depth = focal_pred / (width * raw_inv_depth)`` (see
+    ``transformers.models.depth_pro.image_processing_depth_pro``), which is
+    linear in the focal length used, so
+    ``depth(f_true) = depth(f_pred) * (f_true / f_pred)`` reproduces exactly
+    what plugging ``f_true`` into that formula would give (the HF API has no
+    argument to inject a focal length into the forward/post-process call
+    itself; the FOV head only ever predicts one). Ignored (no-op) for models
+    that don't predict a focal length at all, since there is nothing to
+    rescale against.
+
+    Cached to ``{cache_dir}/mono_depth/{model_id}/{cache_key}_{res}[_fh<px>].npz``:
+    the cache key is expected to already encode video-content-hash +
+    frame-index (the model id, resize mode and focal hint are folded into the
+    path), so re-runs on the same video/photo replay deterministically
+    without touching the network or the GPU/MPS device.
     """
     suffix = "full" if resize_to_input else "native"
+    if focal_hint_px is not None:
+        suffix += f"_fh{int(round(focal_hint_px))}"
     path = _cache_path(cache_dir, model_id, f"{cache_key}_{suffix}")
     if path.exists():
         with np.load(path) as z:
@@ -113,11 +132,20 @@ def predict_depth(
     focal = pp.get("focal_length")
     focal_px = float(focal) if focal is not None else None
 
+    if focal_hint_px is not None and focal_px is not None and focal_px > 1e-6:
+        depth = depth * (float(focal_hint_px) / focal_px)
+        focal_px = float(focal_hint_px)
+
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp.npz")
-    np.savez_compressed(tmp, depth=depth.astype(np.float16),
-                         focal=np.float32(focal_px if focal_px is not None else np.nan))
+    focal32 = np.float32(focal_px if focal_px is not None else np.nan)
+    np.savez_compressed(tmp, depth=depth.astype(np.float16), focal=focal32)
     os.replace(tmp, path)
+    # Return exactly what a cache replay returns (float16-quantised depth, float32 focal): otherwise the
+    # first, live run on a machine differs by rounding from every later replay, and downstream room
+    # segmentation can amplify that difference (measured: 1 vs 3 rooms on c00a170fe1).
+    depth = depth.astype(np.float16).astype(np.float32)
+    focal_px = float(focal32) if np.isfinite(focal32) else None
     return depth, focal_px
 
 
