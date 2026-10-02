@@ -1,6 +1,6 @@
 # Fix loop post-mortem (Part 4)
 
-Declaration: `docs/fix_declaration.md` (committed before any fix, git `50befa1`).
+Declaration: `docs/fix_declaration.md` (committed before any fix, git `45beed3`).
 Regenerate both runs from raw captures: `bash scripts/fixloop.sh` → `reports/fixloop/before_after.md`.
 Readable diff: `git diff fixloop-before -- scan2plan/layout.py scan2plan/maps.py bench/compare.py`. The shipped fix is
 the occlusion test in `layout.py` (`FURNITURE_H`, `OCCLUDED_SIGMA`, `UNSEEN_SIGMA`, `_refine_lines`) plus the
