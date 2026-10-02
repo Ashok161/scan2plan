@@ -108,6 +108,8 @@ def _build_region_context(region: dict, plan: Plan) -> dict:
     point_xz = np.array([cx, cz])
 
     height_above_floor = cy - room.floor_y
+    top = room.ceiling_y if room.ceiling_y is not None else room.floor_y + room.ceiling_height.value
+    dist_to_ceiling = top - cy
     is_exterior = False
     diag_from_corner = False
     if kind == "wall":
@@ -131,12 +133,24 @@ def _build_region_context(region: dict, plan: Plan) -> dict:
         "height_m": height_m,
         "length_m": max(width_m, height_m),
         "height_above_floor_m": height_above_floor,
+        "dist_to_ceiling_m": dist_to_ceiling,
+        "near_ceiling": dist_to_ceiling < 0.4,
         "is_exterior_wall": is_exterior,
         "near_wet_room": dwet < _NEAR_WET_ROOM_M,
         "wet_room_dist_m": dwet,
         "diagonal_from_opening_corner": diag_from_corner,
         "centroid_xz": point_xz,
     }
+
+
+def evaluate_flags(dmg: list[dict], plan: Plan, rules: list[dict] | None = None) -> list[dict]:
+    """CLI entry point: `from .concealed import evaluate_flags; evaluate_flags(dmg, plan)`.
+
+    Thin argument-order wrapper around `evaluate_concealed` (plan-first,
+    matching the rest of this module's helpers, which all take `plan`
+    first since they need it to resolve surfaces/rooms/openings).
+    """
+    return evaluate_concealed(plan, dmg, rules)
 
 
 def evaluate_concealed(plan: Plan, damage_regions: list[dict], rules: list[dict] | None = None) -> list[dict]:

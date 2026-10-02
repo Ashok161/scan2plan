@@ -74,6 +74,7 @@
     a.cls == 'water_stain' and b.cls == 'water_stain'
     and {a.surface_kind, b.surface_kind} == {'ceiling', 'wall'}
     and a.room_id == b.room_id and centroid_dist_m < 0.75
+    and ((a.surface_kind == 'wall' and a.near_ceiling) or (b.surface_kind == 'wall' and b.near_ceiling))
   flag: "Water staining spans the ceiling-wall junction: possible roof or plumbing leak at the junction."
   severity: high
   recommended_investigation: >

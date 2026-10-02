@@ -62,6 +62,17 @@ def _sum_measurements(ms: list[Measurement], scale: float = 1.0, unit: str = "m2
     return Measurement(value, sigma, unit, method=f"sum of {len(ms)} region measurement(s) x {scale}")
 
 
+def build_scope(dmg: list[dict], flags: list[dict], plan: Plan,
+                rules_path: str | Path = _RULES_PATH) -> list[dict]:
+    """CLI entry point: `from .scope import build_scope; build_scope(dmg, flags, plan)`.
+
+    Thin argument-order wrapper around `generate_scope` (plan-first, matching
+    this module's other helpers, which need `plan` to resolve surface
+    dimensions).
+    """
+    return generate_scope(plan, dmg, flags, rules_path)
+
+
 def generate_scope(plan: Plan, damage_regions: list[dict], concealed_flags: list[dict],
                    rules_path: str | Path = _RULES_PATH) -> list[dict]:
     rules = load_scope_rules(rules_path)
@@ -73,7 +84,8 @@ def generate_scope(plan: Plan, damage_regions: list[dict], concealed_flags: list
         if rule["applies_to"] == "damage":
             matched = [d for d in damage_regions
                       if d["class"] in rule["classes"]
-                      and surfaces_by_id[d["surface_id"]]["kind"] in rule["surface_kinds"]]
+                      and surfaces_by_id[d["surface_id"]]["kind"] in rule["surface_kinds"]
+                      and not d.get("low_confidence", False)]
             by_surface: dict[str, list[dict]] = {}
             for d in matched:
                 by_surface.setdefault(d["surface_id"], []).append(d)
@@ -102,7 +114,7 @@ def generate_scope(plan: Plan, damage_regions: list[dict], concealed_flags: list
                                     if s["id"] == flag["surface_id"]), None),
                     "code": rule["code"],
                     "description": rule["description"],
-                    "quantity": Measurement(1.0, 0.0, "ea", method="one allowance per concealed flag").to_json(),
+                    "quantity": Measurement(1.0, 0.0, "count", method="one allowance per concealed flag").to_json(),
                     "unit": rule["unit"],
                     "basis": rule["basis"],
                     "triggered_by": [flag["id"]],
@@ -125,5 +137,5 @@ def _quantity(rule: dict, plan: Plan, surface: dict, regions: list[dict]) -> Mea
             lengths.append(w if w.value >= h.value else h)
         return _sum_measurements(lengths, unit="m")
     if basis == "count":
-        return Measurement(float(len(regions)), 0.0, "ea", method="count of matched damage regions")
+        return Measurement(float(len(regions)), 0.0, "count", method="count of matched damage regions")
     raise ValueError(f"unknown quantity_basis {basis!r}")

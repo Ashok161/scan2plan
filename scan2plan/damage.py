@@ -134,30 +134,37 @@ def _pick_device(device: str | None) -> str:
 # reruns are deterministic and fast; the live path (uncached) is identical
 # code, just without the json round-trip.
 # --------------------------------------------------------------------------
-def _cache_path(cache_dir: Path, source: str, frame_idx: int) -> Path:
-    h = hashlib.sha1(source.encode()).hexdigest()[:12]
+def _cache_path(cache_dir: Path, source: str, frame_idx: int, enabled_classes: tuple[str, ...]) -> Path:
+    # the class tag is part of the key: a frame detected with a different
+    # set of enabled prompts is a genuinely different model call, not a
+    # cache hit (disabling peeling_paint by default must not silently
+    # replay a stale 5-class result, nor vice versa).
+    tag = ",".join(enabled_classes)
+    h = hashlib.sha1(f"{source}|{tag}".encode()).hexdigest()[:12]
     d = cache_dir / "damage_boxes" / h
     d.mkdir(parents=True, exist_ok=True)
     return d / f"{frame_idx:06d}.json"
 
 
 def _detect_boxes_cached(rgb: np.ndarray, cache_dir: Path, source: str, frame_idx: int,
-                          device: str) -> list[dict]:
-    cp = _cache_path(cache_dir, source, frame_idx)
+                          device: str, enabled_classes: tuple[str, ...] = tuple(DAMAGE_CLASSES)) -> list[dict]:
+    cp = _cache_path(cache_dir, source, frame_idx, enabled_classes)
     if cp.exists():
         return json.loads(cp.read_text())
-    boxes = _detect_boxes(rgb, device)
-    cp.write_text(json.dumps(boxes))
-    return boxes
+    boxes = _detect_boxes(rgb, device, enabled_classes)
+    txt = json.dumps(boxes)
+    cp.write_text(txt)
+    return json.loads(txt)          # live run returns exactly what a cache replay returns
 
 
-def _detect_boxes(rgb: np.ndarray, device: str) -> list[dict]:
-    """OWLv2 zero-shot boxes for every damage class on one RGB frame."""
+def _detect_boxes(rgb: np.ndarray, device: str, enabled_classes: tuple[str, ...] = tuple(DAMAGE_CLASSES)) -> list[dict]:
+    """OWLv2 zero-shot boxes for every *enabled* damage class on one RGB frame."""
     from PIL import Image
     proc, model, torch = _get_model(device)
     img = Image.fromarray(rgb)
-    all_prompts = [p for cls in DAMAGE_CLASSES for p in PROMPTS[cls]]
-    prompt_cls = [cls for cls in DAMAGE_CLASSES for _ in PROMPTS[cls]]
+    classes = [c for c in DAMAGE_CLASSES if c in enabled_classes]
+    all_prompts = [p for cls in classes for p in PROMPTS[cls]]
+    prompt_cls = [cls for cls in classes for _ in PROMPTS[cls]]
     inputs = proc(text=[all_prompts], images=img, return_tensors="pt").to(device)
     with torch.no_grad():
         out = model(**inputs)
@@ -320,24 +327,40 @@ def _best_surface(point_plan: np.ndarray, surfaces: list[dict], bases: list) -> 
 # --------------------------------------------------------------------------
 class _Candidate:
     __slots__ = ("surface_idx", "cls", "score", "frame", "uv_pts", "mean_lab",
-                "n_pts", "residual_mean", "valid_frac", "range_m")
+                "n_pts", "residual_mean", "valid_frac", "range_m", "contrast")
 
     def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
 
 
+_WORK_MAX_SIDE = 960   # classical-CV / backprojection working resolution cap (runtime; see module docstring)
+
+
 def _process_view(fr, fs: FrameSet, plan: Plan, surfaces: list[dict], bases: list,
                   surf_kind: list[str], boxes: list[dict], device: str) -> list[_Candidate]:
     depth, valid = fr.load_depth()
-    rgb = fr.load_rgb()
-    if rgb is None:
+    rgb_full = fr.load_rgb()
+    if rgb_full is None:
         return []
-    h_rgb, w_rgb = rgb.shape[:2]
-    h_d, w_d = depth.shape
-    sx, sy = w_d / w_rgb, h_d / h_rgb
-    depth_up = cv2.resize(depth, (w_rgb, h_rgb), interpolation=cv2.INTER_NEAREST)
-    valid_up = cv2.resize(valid.astype(np.uint8), (w_rgb, h_rgb), interpolation=cv2.INTER_NEAREST) > 0
+    h_full, w_full = rgb_full.shape[:2]
+    # Work at a capped resolution for everything *after* detection: the box
+    # coordinates below are rescaled into this frame. OWLv2 itself always
+    # sees the frame at full resolution (box detection is cached keyed on
+    # full-res coordinates), only the per-box classical segmentation,
+    # Lab conversion and depth backprojection -- the actual per-frame cost --
+    # run at the capped size. Depth's native grid is 256x192, so even at
+    # _WORK_MAX_SIDE=960 we oversample it ~4-5x; there is no detail to lose.
+    scale = min(1.0, _WORK_MAX_SIDE / max(h_full, w_full))
+    if scale < 1.0:
+        w, h = int(round(w_full * scale)), int(round(h_full * scale))
+        rgb = cv2.resize(rgb_full, (w, h), interpolation=cv2.INTER_AREA)
+    else:
+        w, h = w_full, h_full
+        rgb = rgb_full
+
+    depth_up = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
+    valid_up = cv2.resize(valid.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST) > 0
 
     bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
     # mild low-light compensation for the *detector/segmenter* input only
@@ -346,28 +369,34 @@ def _process_view(fr, fs: FrameSet, plan: Plan, surfaces: list[dict], bases: lis
         lab_eq = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB)
         lab_eq[..., 0] = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8)).apply(lab_eq[..., 0])
         bgr = cv2.cvtColor(lab_eq, cv2.COLOR_LAB2BGR)
+    lab_full = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB).astype(np.float32)   # once per frame, not per box
 
-    fx, fy, cx, cy = fr.K_rgb[0, 0], fr.K_rgb[1, 1], fr.K_rgb[0, 2], fr.K_rgb[1, 2]
+    fx, fy, cx, cy = fr.K_rgb[0, 0] * scale, fr.K_rgb[1, 1] * scale, fr.K_rgb[0, 2] * scale, fr.K_rgb[1, 2] * scale
     R_wc, t_wc = fr.T_wc[:3, :3], fr.T_wc[:3, 3]
     T_align = plan.T_align
 
     out = []
     for b in boxes:
         cls = b["class"]
-        x0, y0, x1, y1 = [int(round(v)) for v in b["box"]]
+        x0, y0, x1, y1 = [int(round(v * scale)) for v in b["box"]]
         x0, y0 = max(0, x0), max(0, y0)
-        x1, y1 = min(w_rgb, x1), min(h_rgb, y1)
-        if x1 - x0 < 6 or y1 - y0 < 6:
+        x1, y1 = min(w, x1), min(h, y1)
+        if x1 - x0 < 4 or y1 - y0 < 4:
             continue
         crop = bgr[y0:y1, x0:x1]
-        lab_full = cv2.cvtColor(bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
-        ref = _reference_color(lab_full, (x0, y0, x1, y1), margin=max(8, (x1 - x0) // 4), shape=(h_rgb, w_rgb))
+        ref = _reference_color(lab_full, (x0, y0, x1, y1), margin=max(6, (x1 - x0) // 4), shape=(h, w))
         mask, _ = _segment_mask(crop, cls, ref)
-        if mask.sum() < 15:
+        if mask.sum() < 10:
             continue
 
         ys, xs = np.where(mask)
         ys, xs = ys + y0, xs + x0
+        # segmentation contrast: how far the masked pixels sit from the local
+        # "clean surface" reference colour -- a cheap, model-free confidence
+        # signal (noise/texture FPs tend to be low-contrast; real damage,
+        # even subtle, is a locally distinct patch, that's the whole premise
+        # of the Otsu split in _segment_mask).
+        contrast = float(np.linalg.norm(lab_full[ys, xs] - ref[None, :], axis=1).mean())
         d = depth_up[ys, xs]
         v = valid_up[ys, xs]
         valid_frac = float(v.mean())
@@ -415,7 +444,7 @@ def _process_view(fr, fs: FrameSet, plan: Plan, surfaces: list[dict], bases: lis
             surface_idx=surf_i, cls=cls, score=b["score"], frame=fr.index,
             uv_pts=uv, mean_lab=lab_px.mean(axis=0), n_pts=int(len(uv)),
             residual_mean=float(best_d[sel][inside].mean()), valid_frac=valid_frac,
-            range_m=range_m,
+            range_m=range_m, contrast=contrast,
         ))
     return out
 
@@ -485,6 +514,30 @@ def _fuse_cluster(cluster: list[_Candidate], fs: FrameSet, plan_tier: str) -> di
     if n_views < _MIN_VIEWS_CONFIRMED:
         confidence *= 0.6   # single-view: down-weighted, still reported (recall over silence)
 
+    contrast_mean = float(np.mean([c.contrast for c in cluster]))
+    # Stricter multi-view geometric consistency: cluster membership above is
+    # just centroid proximity (<_CLUSTER_DIST), which tolerates views whose
+    # footprints barely overlap at all -- real persistent damage should
+    # paint roughly the *same* patch of wall from every view, not just
+    # nearby ones. Mean pairwise IoU of the per-view hulls (in surface uv)
+    # is a free-standing diagnostic (shapely, no extra model) kept in
+    # evidence and used by the operating point below; a mean IoU near 0
+    # with n_views>=2 is a decent tell for "two unrelated noise boxes
+    # happened to land near each other", not one real damage patch.
+    if n_views > 1:
+        from shapely.geometry import MultiPoint
+        per_view_polys = [MultiPoint(c.uv_pts).convex_hull.buffer(0.02) for c in cluster]
+        ious = []
+        for i in range(len(per_view_polys)):
+            for j in range(i + 1, len(per_view_polys)):
+                a, b = per_view_polys[i], per_view_polys[j]
+                u = a.union(b).area
+                if u > 1e-9:
+                    ious.append(a.intersection(b).area / u)
+        mean_iou = float(np.mean(ious)) if ious else 0.0
+    else:
+        mean_iou = 1.0   # single view: nothing to disagree with; not penalised here
+
     err = fs.errors
     range_m = float(np.mean([c.range_m for c in cluster]))
     depth_sigma = err.depth_sigma_abs + err.depth_sigma_rel * range_m
@@ -531,15 +584,88 @@ def _fuse_cluster(cluster: list[_Candidate], fs: FrameSet, plan_tier: str) -> di
             "valid_depth_frac_mean": float(np.mean([c.valid_frac for c in cluster])),
             "geom_residual_mean_m": float(np.mean([c.residual_mean for c in cluster])),
             "n_points": int(sum(c.n_pts for c in cluster)),
+            "mask_contrast_mean": contrast_mean,
+            "mean_pairwise_iou": mean_iou,
         },
     }
 
 
 # --------------------------------------------------------------------------
+# Operating point
+# --------------------------------------------------------------------------
+# Chosen from a measured precision/recall/FP-per-m2 grid sweep (810 points:
+# score x n_views x colour-consistency x segmentation-contrast) over the 3
+# clean captures (FP side, ~178 raw regions / 490 m2) and the enlarged
+# 55-instance / 5-class / 6-wall / 3-capture synthetic staged-damage suite
+# (recall side), both reproducible from bench/synthetic_damage.py
+# (`sweep_operating_points`); the full table is in
+# reports/damage/operating_point_sweep.json and the technical report's
+# "damage operating point" section. Selection rule, applied in this order:
+# (1) FP rate on the clean captures <= 0.01/m2 AND <= 2 per capture;
+# (2) *then* maximise synthetic recall. A `min_pairwise_iou` (stricter
+# multi-view geometric consistency, computed in evidence) was swept too and
+# did not move the frontier at any FP-qualifying point, so it is not part
+# of the gate (kept only as an evidence diagnostic -- requirement 4's
+# "keep it only if it improves the curve").
+#
+# Measured result at this point: 2 false regions / 490 m2 (0.0041/m2) on
+# the clean captures; on the synthetic suite, 5/55 instances matched
+# (recall 0.091), 10 detections survived the filter (precision 0.5). This
+# is low, and it is the honest number: at a false-positive budget tight
+# enough to not put phantom repaint line items in every report, this
+# detector mostly goes quiet rather than finding real damage. See the
+# per-class breakdown in the report -- hole_or_impact (high-contrast,
+# compact, geometrically crisp) is the only class with non-trivial recall
+# (4/12, 33%) at this point; water_stain/mould/crack/peeling_paint are
+# ~0 because 3-view confirmation at score>=0.34 is a high bar for a
+# single staged patch when `max_frames=200` keyframes only sees that patch
+# from 1-2 well-placed views much of the time.
+DEFAULT_OPERATING_POINT = {
+    "min_score": 0.34,
+    "min_views": 3,
+    "min_color_consistency": 0.0,
+    "min_contrast": 0.0,
+}
+
+# peeling_paint is excluded from the default run: on real (undamaged)
+# textured walls it was the single largest false-positive source (89/174
+# false regions, 51%, in the clean-capture measurement) and no combination
+# of the four thresholds above gets its false-positive rate near the
+# target without also erasing essentially all of its true-positive
+# recall (the class is intrinsically a texture/lighting-variation
+# classifier, and real painted walls already have plenty of both). It is
+# never queried by default (saves a detector prompt + its classical
+# segmentation pass, which also helps runtime). Passing it explicitly via
+# `enabled_classes` re-enables detection, but every peeling_paint region is
+# tagged `low_confidence: true` and scope.py skips tagged regions when
+# building line items, so it can never silently produce a phantom repaint
+# quote even if re-enabled.
+ENABLED_CLASSES_DEFAULT = ("water_stain", "mould", "crack", "hole_or_impact")
+LOW_CONFIDENCE_CLASSES = frozenset({"peeling_paint"})
+
+
+def _passes_operating_point(region: dict, op: dict) -> bool:
+    ev = region["evidence"]
+    return (ev["detector_score_mean"] >= op["min_score"]
+            and region["n_views"] >= op["min_views"]
+            and ev["color_consistency"] >= op["min_color_consistency"]
+            and ev["mask_contrast_mean"] >= op["min_contrast"])
+
+
+# --------------------------------------------------------------------------
 # Public API
 # --------------------------------------------------------------------------
-def detect_damage(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: str | None = None,
-                  max_frames: int = 200, progress=None) -> list[dict]:
+def _detect_damage_raw(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: str | None = None,
+                       max_frames: int = 200, progress=None,
+                       enabled_classes=DAMAGE_CLASSES) -> list[dict]:
+    """Every fused cluster with full evidence, *no* operating-point filter
+    and no low_confidence tagging -- only `enabled_classes` gates which
+    detector prompts are even queried (so disabling a class also saves
+    runtime, not just precision). This is what the PR / FP-per-m2 sweep in
+    bench/synthetic_damage.py calls directly so thresholds can be swept in
+    plain Python without re-running the model. `detect_damage` below is a
+    thin operating-point filter on top of this.
+    """
     device = _pick_device(device)
     cache_path = Path(cache_dir)
     surfaces = plan.surfaces()
@@ -547,6 +673,7 @@ def detect_damage(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: s
         return []
     bases = [_surface_basis(s) for s in surfaces]
     surf_kind = [s["kind"] for s in surfaces]
+    enabled = tuple(sorted(enabled_classes))
 
     keyframes = select_keyframes(fs, max_frames=max_frames)
     all_cands: list[_Candidate] = []
@@ -558,7 +685,7 @@ def detect_damage(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: s
             rgb = fr.load_rgb()
         except Exception:
             continue
-        boxes = _detect_boxes_cached(rgb, cache_path, fs.source or "fs", fr.index, device)
+        boxes = _detect_boxes_cached(rgb, cache_path, fs.source or "fs", fr.index, device, enabled)
         if boxes:
             all_cands.extend(_process_view(fr, fs, plan, surfaces, bases, surf_kind, boxes, device))
         if progress and n % 20 == 0:
@@ -596,5 +723,27 @@ def detect_damage(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: s
             "n_views": fused["n_views"],
             "frames": fused["frames"],
             "evidence": fused["evidence"],
+            "low_confidence": False,
         })
     return regions
+
+
+def detect_damage(fs: FrameSet, plan: Plan, cache_dir: str = ".cache", device: str | None = None,
+                  max_frames: int = 200, progress=None, enabled_classes=ENABLED_CLASSES_DEFAULT,
+                  operating_point: dict | None = None) -> list[dict]:
+    """Default entry point: `enabled_classes` + `operating_point` default to
+    the measured, conservative operating point above (FP <= 0.01/m2 on the
+    clean captures). Pass `enabled_classes=damage.DAMAGE_CLASSES` to also
+    run the disabled low-confidence classes (peeling_paint); they come back
+    tagged `low_confidence: true` and `scope.build_scope` ignores them.
+    """
+    op = operating_point or DEFAULT_OPERATING_POINT
+    raw = _detect_damage_raw(fs, plan, cache_dir=cache_dir, device=device, max_frames=max_frames,
+                             progress=progress, enabled_classes=enabled_classes)
+    out = []
+    for r in raw:
+        if not _passes_operating_point(r, op):
+            continue
+        r["low_confidence"] = r["class"] in LOW_CONFIDENCE_CLASSES
+        out.append(r)
+    return out

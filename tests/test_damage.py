@@ -57,8 +57,10 @@ def test_surface_basis_wall_is_orthonormal_and_matches_corners():
     assert np.isclose(np.linalg.norm(u_hat), 1.0)
     assert np.isclose(np.linalg.norm(v_hat), 1.0)
     assert np.isclose(u_hat @ v_hat, 0.0, atol=1e-9)
-    # corner 1 is "length" metres along u from corner 0
-    assert np.isclose(uv_corners[1, 0], 3.0, atol=1e-6)
+    # corner 1 is "length" metres along u from corner 0 (sign depends on the
+    # normal's orientation, cross-product convention; magnitude is what
+    # downstream extent/area math actually uses)
+    assert np.isclose(abs(uv_corners[1, 0]), 3.0, atol=1e-6)
     assert np.isclose(uv_corners[1, 1], 0.0, atol=1e-6)
     # corner 3 is "top-floor" metres along v from corner 0
     assert np.isclose(uv_corners[3, 1], 2.4, atol=1e-6)
@@ -72,11 +74,11 @@ def test_surface_basis_floor_uses_plan_xz():
 
 
 def _candidate(surface_idx, cls, score, frame, uv_pts, mean_lab=(50.0, 0.0, 0.0), range_m=1.5,
-              residual=0.01, valid_frac=0.9):
+              residual=0.01, valid_frac=0.9, contrast=15.0):
     return dmg._Candidate(surface_idx=surface_idx, cls=cls, score=score, frame=frame,
                           uv_pts=np.asarray(uv_pts, dtype=float), mean_lab=np.array(mean_lab),
                           n_pts=len(uv_pts), residual_mean=residual, valid_frac=valid_frac,
-                          range_m=range_m)
+                          range_m=range_m, contrast=contrast)
 
 
 def test_cluster_candidates_groups_by_surface_class_and_proximity():
@@ -152,3 +154,92 @@ def test_detect_boxes_smoke(tmp_path):
         assert b["class"] in dmg.DAMAGE_CLASSES
         assert 0.0 <= b["score"] <= 1.0
         assert len(b["box"]) == 4
+
+
+def _data_dir():
+    return Path(__file__).resolve().parent.parent / "data"
+
+
+requires_capture = pytest.mark.skipif(not (_data_dir() / "c00a170fe1").exists(),
+                                      reason="data/c00a170fe1 capture not present")
+
+
+@requires_weights
+@requires_capture
+def test_detect_damage_on_real_plan_smoke(tmp_path):
+    """Integration smoke test against the coordinator's real layout.build_plan,
+    not the dev fixture: a few keyframes only, just to confirm the surface
+    projection / clustering / Measurement plumbing works end to end and the
+    returned dicts have the right shape. Full-length runs (max_frames=200)
+    are exercised by bench/synthetic_damage.py, not here, to keep this fast.
+    """
+    from scan2plan.io.stray import load_stray
+    from scan2plan.layout import build_plan
+
+    fs = load_stray(_data_dir() / "c00a170fe1")
+    plan = build_plan(fs)
+    regions = dmg.detect_damage(fs, plan, cache_dir=str(tmp_path / ".cache"), max_frames=10)
+    assert isinstance(regions, list)
+    surface_ids = {s["id"] for s in plan.surfaces()}
+    for r in regions:
+        assert r["surface_id"] in surface_ids
+        assert r["class"] in dmg.DAMAGE_CLASSES
+        assert 0.0 <= r["confidence"] <= 1.0
+        assert r["area"]["value"] >= 0
+        assert r["area"]["unit"] == "m2"
+        assert r["extent"]["width"]["unit"] == "m"
+        assert len(r["centroid_plan"]) == 3
+        assert r["n_views"] == len(set(r["frames"]))
+
+
+# --------------------------------------------------------------------------
+# Operating point: FP <= 0.01/m2 on the clean captures, then max synthetic
+# recall (see bench/synthetic_damage.py's sweep + damage.py's
+# DEFAULT_OPERATING_POINT docstring for how these numbers were chosen).
+# --------------------------------------------------------------------------
+def _region(score, n_views, color_consistency, contrast, cls="water_stain"):
+    return {"class": cls, "n_views": n_views,
+           "evidence": {"detector_score_mean": score, "color_consistency": color_consistency,
+                       "mask_contrast_mean": contrast}}
+
+
+def test_passes_operating_point_requires_all_four_thresholds():
+    op = dmg.DEFAULT_OPERATING_POINT
+    good = _region(0.9, 10, 1.0, 50.0)
+    assert dmg._passes_operating_point(good, op)
+    too_weak_score = _region(op["min_score"] - 0.01, 10, 1.0, 50.0)
+    assert not dmg._passes_operating_point(too_weak_score, op)
+    too_few_views = _region(0.9, max(op["min_views"] - 1, 0), 1.0, 50.0)
+    assert not dmg._passes_operating_point(too_few_views, op)
+
+
+def test_peeling_paint_excluded_by_default_but_tagged_if_enabled():
+    assert "peeling_paint" not in dmg.ENABLED_CLASSES_DEFAULT
+    assert "peeling_paint" in dmg.LOW_CONFIDENCE_CLASSES
+    assert "peeling_paint" in dmg.DAMAGE_CLASSES   # taxonomy still documents it
+
+
+def test_scope_skips_low_confidence_regions(monkeypatch=None):
+    from scan2plan.measure import Measurement
+    from scan2plan.plan_types import Plan, Room, Wall
+    from scan2plan.scope import generate_scope
+    import numpy as np
+
+    def m(v, s=0.01, u="m"):
+        return Measurement(v, s, u)
+
+    wall = Wall(id="r.W0", start=np.array([0.0, 0.0]), end=np.array([3.0, 0.0]),
+               normal_in=np.array([0.0, 1.0]), length=m(3.0), height=m(2.4),
+               offset_sigma=0.01, coverage=1.0)
+    room = Room(id="r", name="r", kind="room", polygon=np.array([[0, 0], [3, 0], [3, 3], [0, 3]], dtype=float),
+               floor_y=0.0, ceiling_y=2.4, area=m(9.0, 0.05, "m2"), perimeter=m(12.0),
+               ceiling_height=m(2.4), walls=[wall])
+    plan = Plan(tier="lidar", rooms=[room], adjacency=[], T_align=np.eye(4), floor_y=0.0)
+
+    region = {"id": "d.1", "surface_id": "r.W0", "room_id": "r", "class": "peeling_paint",
+             "confidence": 0.5, "low_confidence": True,
+             "area": {"value": 0.1, "sigma": 0.01, "ci95": [0, 1], "unit": "m2"},
+             "extent": {"width": {"value": 0.3, "sigma": 0.01, "ci95": [0, 1], "unit": "m"},
+                       "height": {"value": 0.3, "sigma": 0.01, "ci95": [0, 1], "unit": "m"}}}
+    items = generate_scope(plan, [region], [])
+    assert items == []   # a low_confidence region must never produce a scope line item

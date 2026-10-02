@@ -11,10 +11,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from scan2plan.concealed import evaluate_concealed, load_rules
+from scan2plan.concealed import evaluate_concealed, evaluate_flags, load_rules
 from scan2plan.measure import Measurement
 from scan2plan.plan_types import Opening, Plan, Room, Wall
-from scan2plan.scope import generate_scope, load_scope_rules
+from scan2plan.scope import build_scope, generate_scope, load_scope_rules
 
 
 def _m(value, sigma=0.01, unit="m"):
@@ -192,3 +192,19 @@ def test_scope_item_schema(plan, regions):
         assert set(item) == {"id", "surface_id", "room_id", "code", "description",
                              "quantity", "unit", "basis", "triggered_by"}
         assert "ci95" in item["quantity"]
+        # schema/scan2plan_output.schema.json restricts the *nested* measurement
+        # unit to m / m2 / count / deg -- "ea" (used for the human-readable
+        # top-level `unit` field) must never leak into quantity["unit"].
+        assert item["quantity"]["unit"] in ("m", "m2", "count", "deg")
+
+
+# --------------------------------------------------------------------------
+# CLI-facing entry points: evaluate_flags(dmg, plan) / build_scope(dmg, flags, plan)
+# --------------------------------------------------------------------------
+def test_evaluate_flags_matches_evaluate_concealed(plan, regions):
+    assert evaluate_flags(regions, plan) == evaluate_concealed(plan, regions)
+
+
+def test_build_scope_matches_generate_scope(plan, regions):
+    flags = evaluate_flags(regions, plan)
+    assert build_scope(regions, flags, plan) == generate_scope(plan, regions, flags)
