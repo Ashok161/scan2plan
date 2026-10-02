@@ -12,3 +12,8 @@ data/
 out/
 .cache/
 .DS_Store
+.cache_test/
+*.egg-info/
+.pytest_cache/
+bench/out/
+Applied_AI_Case_Study.pdf
